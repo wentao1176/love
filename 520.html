@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>520 · 心动告白 | 我喜欢你</title>
+    <!-- canvas-confetti 轻量彩带库 -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none; /* 避免拖动文字，保持整洁 */
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(145deg, #ffb6c1 0%, #ff85a1 30%, #ff5e7e 100%);
+            background-attachment: fixed;
+            font-family: 'Segoe UI', 'Quicksand', system-ui, -apple-system, 'Poppins', 'Dancing Script', cursive;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+            cursor: default;
+        }
+
+        /* 浮动小爱心背景 (动态生成心形元素) */
+        .floating-hearts {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .heart-bg {
+            position: absolute;
+            font-size: 1.2rem;
+            opacity: 0.5;
+            animation: floatHeart linear infinite;
+            color: #fff3f5;
+            text-shadow: 0 0 5px rgba(255, 80, 120, 0.5);
+            pointer-events: none;
+        }
+
+        @keyframes floatHeart {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0.6;
+            }
+            100% {
+                transform: translateY(-20vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* 主卡片容器 */
+        .card {
+            position: relative;
+            z-index: 10;
+            max-width: 620px;
+            width: 100%;
+            background: rgba(255, 248, 245, 0.96);
+            backdrop-filter: blur(2px);
+            border-radius: 68px 68px 72px 72px;
+            box-shadow: 0 30px 45px rgba(0, 0, 0, 0.2), 0 0 0 8px rgba(255, 220, 220, 0.6), 0 0 0 12px rgba(255, 140, 160, 0.3);
+            text-align: center;
+            padding: 30px 28px 48px;
+            transition: all 0.3s ease;
+            animation: cardGlow 2s infinite alternate;
+        }
+
+        @keyframes cardGlow {
+            0% {
+                box-shadow: 0 30px 45px rgba(0, 0, 0, 0.2), 0 0 0 8px rgba(255, 220, 220, 0.6), 0 0 0 12px rgba(255, 140, 160, 0.3);
+            }
+            100% {
+                box-shadow: 0 35px 55px rgba(0, 0, 0, 0.25), 0 0 0 10px rgba(255, 200, 200, 0.9), 0 0 0 16px rgba(255, 100, 130, 0.5);
+            }
+        }
+
+        /* 跳动的大爱心 & 520 数字 */
+        .love-header {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .big-heart {
+            font-size: 85px;
+            display: inline-block;
+            animation: heartbeat 1.2s infinite ease-in-out;
+            filter: drop-shadow(0 8px 18px rgba(220, 60, 80, 0.4));
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(1.2); text-shadow: 0 0 15px #ff3366; }
+            35% { transform: scale(1.1); }
+            45% { transform: scale(1.25); }
+            55% { transform: scale(1.1); }
+        }
+
+        .glow-520 {
+            font-size: 80px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ff416c, #ff4b2b);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: 8px;
+            text-shadow: 0 4px 15px rgba(255, 80, 100, 0.3);
+            margin: 10px 0 5px;
+            animation: textGlow 1.5s infinite alternate;
+        }
+
+        @keyframes textGlow {
+            from { text-shadow: 0 0 5px #ff99aa; }
+            to { text-shadow: 0 0 20px #ff3355, 0 0 5px #ff9999; }
+        }
+
+        .sub-message {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #b13e5a;
+            background: rgba(255, 220, 210, 0.6);
+            display: inline-block;
+            padding: 5px 18px;
+            border-radius: 60px;
+            backdrop-filter: blur(2px);
+            letter-spacing: 1px;
+        }
+
+        /* 告白文字 */
+        .confession-text {
+            margin: 28px 0 20px;
+            font-size: 1.65rem;
+            line-height: 1.4;
+            font-weight: 600;
+            color: #4a2c34;
+            font-family: 'Segoe UI', 'Quicksand', 'Dancing Script', cursive;
+        }
+
+        .confession-text p {
+            background: linear-gradient(120deg, #ffe6e9, #fff0f2);
+            display: inline;
+            padding: 0 12px;
+            border-radius: 50px;
+            box-decoration-break: clone;
+            -webkit-box-decoration-break: clone;
+        }
+
+        .name-tag {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #ff3b6f;
+            display: inline-block;
+            margin: 8px 0;
+            text-shadow: 2px 2px 10px rgba(255, 100, 130, 0.4);
+        }
+
+        /* 按钮区域 (flex 内两个按钮) */
+        .buttons-area {
+            margin: 35px 0 15px;
+            display: flex;
+            justify-content: center;
+            gap: 35px;
+            flex-wrap: wrap;
+            position: relative;
+            min-height: 85px;
+        }
+
+        .btn {
+            border: none;
+            font-size: 1.6rem;
+            font-weight: bold;
+            padding: 12px 32px;
+            border-radius: 56px;
+            cursor: pointer;
+            transition: all 0.25s;
+            box-shadow: 0 6px 0 rgba(0, 0, 0, 0.1);
+            font-family: inherit;
+            letter-spacing: 1px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-yes {
+            background: #ff5c8a;
+            color: white;
+            border: 2px solid #fff0f0;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .btn-yes:hover {
+            background: #ff3366;
+            transform: scale(1.05);
+            box-shadow: 0 8px 18px rgba(255, 50, 100, 0.4);
+        }
+
+        .btn-no {
+            background: #d9c7cd;
+            color: #4b2e38;
+            border: 2px solid #fce4ea;
+            transition: transform 0.2s ease, background 0.2s;
+            position: relative;
+            /* 初始无偏移，偏移将通过js动态添加transform */
+        }
+
+        .btn-no:hover {
+            background: #c2a9b1;
+        }
+
+        /* 逃跑时的过渡平滑 */
+        .no-run {
+            transition: transform 0.2s cubic-bezier(0.34, 1.2, 0.64, 1);
+        }
+
+        /* 成功后的覆盖层+惊喜 */
+        .success-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(12px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            animation: fadeIn 0.5s;
+            font-family: 'Segoe UI', cursive;
+        }
+
+        .success-card {
+            background: linear-gradient(145deg, #fff2f5, #ffe0e8);
+            border-radius: 70px;
+            padding: 40px 30px;
+            text-align: center;
+            max-width: 90%;
+            width: 500px;
+            box-shadow: 0 30px 40px rgba(0, 0, 0, 0.3);
+            border: 3px solid white;
+            animation: bouncePop 0.5s;
+        }
+
+        .success-card h1 {
+            font-size: 3rem;
+            color: #ff3366;
+            margin-bottom: 20px;
+        }
+
+        .success-card p {
+            font-size: 1.6rem;
+            font-weight: 500;
+            color: #902d47;
+            margin: 15px 0;
+        }
+
+        .success-card .final-heart {
+            font-size: 70px;
+            animation: heartbeat 0.8s infinite;
+        }
+
+        .close-success {
+            margin-top: 28px;
+            background: #ff5c8a;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 40px;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes bouncePop {
+            0% { transform: scale(0.8); opacity: 0; }
+            80% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* 提示小尾巴 */
+        .hint-text {
+            margin-top: 30px;
+            font-size: 0.9rem;
+            color: #c0607a;
+            background: rgba(255, 245, 240, 0.7);
+            border-radius: 50px;
+            padding: 6px 16px;
+            display: inline-block;
+            backdrop-filter: blur(2px);
+        }
+
+        /* 响应式调整 —— 完美适配手机端 */
+        @media (max-width: 550px) {
+            .card {
+                padding: 20px 18px 35px;
+                border-radius: 48px;
+            }
+            .glow-520 {
+                font-size: 58px;
+                letter-spacing: 4px;
+            }
+            .confession-text {
+                font-size: 1.3rem;
+            }
+            .btn {
+                font-size: 1.25rem;
+                padding: 10px 22px;
+            }
+            .buttons-area {
+                gap: 20px;
+            }
+            .big-heart {
+                font-size: 65px;
+            }
+            .name-tag {
+                font-size: 1.4rem;
+            }
+            .success-card h1 {
+                font-size: 2rem;
+            }
+            .success-card p {
+                font-size: 1.2rem;
+            }
+        }
+
+        /* 针对小折叠屏更稳妥 */
+        @media (max-width: 400px) {
+            .btn {
+                font-size: 1rem;
+                padding: 8px 18px;
+            }
+            .glow-520 {
+                font-size: 48px;
+            }
+            .confession-text {
+                font-size: 1.1rem;
+            }
+            .hint-text {
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="floating-hearts" id="floatingHearts"></div>
+
+<div class="card" id="mainCard">
+    <div class="love-header">
+        <div class="big-heart">❤️❤️❤️</div>
+        <div class="glow-520">5 2 0</div>
+        <div class="sub-message">✨ 告 白 日 ✨</div>
+    </div>
+    
+    <div class="confession-text">
+        <p>💌 亲爱的，我喜欢你 💌</p>
+    </div>
+    <div class="name-tag">✨ 写给 全世界唯一 的 你 ✨</div>
+    <div style="margin: 15px 0 5px; font-size: 1.1rem; color: #bf5973;">
+        从遇见你的那天起，我的世界星河璀璨。<br>
+        余生好长，你最难忘。❤️
+    </div>
+    
+    <!-- 按钮区域，逃跑的No就在这里 -->
+    <div class="buttons-area" id="buttonContainer">
+        <button class="btn btn-yes" id="yesBtn">💖 我愿意 💖</button>
+        <button class="btn btn-no no-run" id="noBtn">🙅 不要嘛 🙅</button>
+    </div>
+    <div class="hint-text">
+        🎈 悄悄告诉你：点“不要嘛”它会害羞逃跑～ 最后还是得点 💖我愿意💖 哟！
+    </div>
+</div>
+
+<script>
+    (function() {
+        // ---------- 飘浮爱心背景生成 ----------
+        const heartsContainer = document.getElementById('floatingHearts');
+        const heartEmojis = ['❤️', '💖', '💗', '💓', '💕', '💞', '🌸', '🌹', '✨', '💝'];
+        
+        function createFloatingHeart() {
+            const heart = document.createElement('div');
+            heart.classList.add('heart-bg');
+            const randomHeart = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
+            heart.innerText = randomHeart;
+            const size = Math.random() * 20 + 12; // 12px - 32px
+            heart.style.fontSize = size + 'px';
+            heart.style.left = Math.random() * 100 + '%';
+            heart.style.animationDuration = Math.random() * 8 + 6 + 's'; // 6~14秒
+            heart.style.animationDelay = Math.random() * 5 + 's';
+            heart.style.opacity = Math.random() * 0.4 + 0.2;
+            heartsContainer.appendChild(heart);
+            
+            // 动画结束后移除
+            heart.addEventListener('animationend', () => {
+                heart.remove();
+            });
+        }
+        
+        // 生成30个爱心背景，再定时补充
+        for (let i = 0; i < 35; i++) {
+            setTimeout(() => createFloatingHeart(), i * 180);
+        }
+        setInterval(() => {
+            if (document.querySelector('.success-overlay') === null) {
+                createFloatingHeart();
+            }
+        }, 1800);
+        
+        // ---------- DOM 元素 ----------
+        const yesButton = document.getElementById('yesBtn');
+        const noButton = document.getElementById('noBtn');
+        const buttonContainer = document.getElementById('buttonContainer');
+        let isConfirmed = false;   // 是否已经表白成功，成功后禁用逃跑和再次yes
+        
+        // 获取父容器边界（用于限制逃跑范围，防止按钮飞出视野太离谱）
+        function getSafeTranslateRange(btn) {
+            if (!buttonContainer) return { maxX: 0, maxY: 0 };
+            const containerRect = buttonContainer.getBoundingClientRect();
+            const btnRect = btn.getBoundingClientRect();
+            // 相对于父容器，计算当前按钮的左上角相对坐标 (基于父容器左上角为原点)
+            const relativeLeft = btnRect.left - containerRect.left;
+            const relativeTop = btnRect.top - containerRect.top;
+            // 可偏移的最大最小值（让按钮仍然在父容器内部不超出边界，保留一点内边距）
+            const padding = 5;
+            const maxOffsetX = containerRect.width - btnRect.width - padding;
+            const minOffsetX = padding - relativeLeft;   // 向左不超出负边界
+            const maxOffsetY = containerRect.height - btnRect.height - padding;
+            const minOffsetY = padding - relativeTop;
+            return {
+                minX: minOffsetX,
+                maxX: maxOffsetX,
+                minY: minOffsetY,
+                maxY: maxOffsetY
+            };
+        }
+        
+        // 让No按钮随机偏移（逃跑核心）
+        function makeNoRunAway() {
+            if (isConfirmed) return;
+            if (!noButton) return;
+            // 清除当前transform
+            noButton.style.transform = 'translate(0px, 0px)';
+            // 获取边界范围 (基于无偏移时的位置)
+            const range = getSafeTranslateRange(noButton);
+            if (range.maxX < 0 || range.maxY < 0) {
+                // 极小屏幕情况，只微调
+                let dx = (Math.random() - 0.5) * 30;
+                let dy = (Math.random() - 0.5) * 25;
+                noButton.style.transform = `translate(${dx}px, ${dy}px)`;
+                return;
+            }
+            // 随机产生偏移量 (在安全范围内)
+            let randomX, randomY;
+            if (range.maxX - range.minX > 0) {
+                randomX = range.minX + Math.random() * (range.maxX - range.minX);
+            } else {
+                randomX = (Math.random() - 0.5) * 25;
+            }
+            if (range.maxY - range.minY > 0) {
+                randomY = range.minY + Math.random() * (range.maxY - range.minY);
+            } else {
+                randomY = (Math.random() - 0.5) * 25;
+            }
+            const finalX = Math.min(range.maxX, Math.max(range.minX, randomX));
+            const finalY = Math.min(range.maxY, Math.max(range.minY, randomY));
+            noButton.style.transform = `translate(${finalX}px, ${finalY}px)`;
+            
+            // 调皮文字变化（增加趣味）
+            const noTexts = ['🙅 不要嘛', '😝 点不到', '💢 抓不到', '😜 就不', '🌚 害羞', '💦 哎呀', '🥺 不要啦'];
+            if (!isConfirmed && Math.random() > 0.6) {
+                const randomIndex = Math.floor(Math.random() * noTexts.length);
+                noButton.innerText = noTexts[randomIndex];
+                setTimeout(() => {
+                    if (!isConfirmed && noButton) noButton.innerText = '🙅 不要嘛 🙅';
+                }, 800);
+            }
+        }
+        
+        // 给NO按钮绑定逃跑触发器 (鼠标进入/触摸开始)
+        function bindEscapeEvents() {
+            if (!noButton) return;
+            // PC: 鼠标进入就逃跑
+            noButton.addEventListener('mouseenter', function(e) {
+                if (!isConfirmed) {
+                    makeNoRunAway();
+                }
+            });
+            // 移动端: 触摸开始就逃跑，并且阻止默认防止误触
+            noButton.addEventListener('touchstart', function(e) {
+                if (!isConfirmed) {
+                    e.preventDefault();
+                    makeNoRunAway();
+                    if (navigator.vibrate) navigator.vibrate(20);
+                }
+            });
+            // 就算点击No也要逃跑 + 提示
+            noButton.addEventListener('click', function(e) {
+                if (isConfirmed) return;
+                e.preventDefault();
+                e.stopPropagation();
+                showFloatingTip('😝 你抓不住我的心 ~ 快按“我愿意”叭！', '#ff88aa');
+                makeNoRunAway();
+                // 抖动小动画
+                noButton.style.transition = 'all 0.1s';
+                noButton.style.transform += ' rotate(2deg)';
+                setTimeout(() => {
+                    if (noButton && !isConfirmed) noButton.style.transform = noButton.style.transform.replace('rotate(2deg)', '');
+                }, 150);
+            });
+        }
+        
+        // 飘浮小提示（适合触摸反馈）
+        function showFloatingTip(msg, bgColor = '#ff99bb') {
+            const tip = document.createElement('div');
+            tip.innerText = msg;
+            tip.style.position = 'fixed';
+            tip.style.bottom = '20%';
+            tip.style.left = '50%';
+            tip.style.transform = 'translateX(-50%)';
+            tip.style.backgroundColor = bgColor;
+            tip.style.color = '#fff';
+            tip.style.padding = '10px 20px';
+            tip.style.borderRadius = '60px';
+            tip.style.fontWeight = 'bold';
+            tip.style.fontSize = '1rem';
+            tip.style.zIndex = '999';
+            tip.style.boxShadow = '0 6px 14px rgba(0,0,0,0.2)';
+            tip.style.backdropFilter = 'blur(8px)';
+            tip.style.border = '1px solid white';
+            tip.style.whiteSpace = 'nowrap';
+            tip.style.fontFamily = 'inherit';
+            document.body.appendChild(tip);
+            setTimeout(() => {
+                tip.style.opacity = '0';
+                tip.style.transition = 'opacity 0.4s';
+                setTimeout(() => tip.remove(), 500);
+            }, 1800);
+        }
+        
+        // 触发烟花 / 彩带 (表白成功)
+        function launchConfetti() {
+            canvasConfetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#ff5e7e', '#ff3366', '#ff99bb', '#ffccdd'] });
+            setTimeout(() => {
+                canvasConfetti({ particleCount: 200, spread: 120, origin: { y: 0.5, x: 0.2 }, startVelocity: 20, colors: ['#ff6b8b', '#ffb3c6'] });
+                canvasConfetti({ particleCount: 200, spread: 120, origin: { y: 0.5, x: 0.8 }, startVelocity: 20 });
+            }, 150);
+            setTimeout(() => {
+                canvasConfetti({ particleCount: 400, spread: 100, origin: { y: 0.7 }, startVelocity: 15, decay: 0.9 });
+                canvasConfetti({ particleCount: 80, spread: 360, origin: { y: 0.4, x: 0.5 }, startVelocity: 25, colors: ['#ff416c', '#ffd966'] });
+            }, 400);
+            setTimeout(() => {
+                canvasConfetti({ particleCount: 300, spread: 60, origin: { y: 0.5, x: 0.5 }, startVelocity: 12, angle: 90, colors: ['#ff4d6d', '#ffb3ba'] });
+            }, 700);
+        }
+        
+        // 表白成功界面
+        function showSuccessOverlay() {
+            if (isConfirmed) return;
+            isConfirmed = true;
+            
+            launchConfetti();
+            const overlay = document.createElement('div');
+            overlay.className = 'success-overlay';
+            overlay.innerHTML = `
+                <div class="success-card">
+                    <div class="final-heart">💖💖💖</div>
+                    <h1>💘 我们在一起啦 💘</h1>
+                    <p>✨ 520 快乐 我的宝贝 ✨</p>
+                    <p style="font-size:1.2rem;">从今往后，每一个朝夕，我都陪着你 ❤️</p>
+                    <p>🌹 谢谢你，答应了我 🌹</p>
+                    <button class="close-success" id="closeSuccessBtn">💞 珍藏此刻 💞</button>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            const closeBtn = document.getElementById('closeSuccessBtn');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    overlay.remove();
+                    if (yesButton && noButton) {
+                        yesButton.disabled = true;
+                        noButton.disabled = true;
+                        yesButton.style.opacity = '0.7';
+                        noButton.style.opacity = '0.5';
+                        yesButton.innerText = '❤️ 我们相爱了 ❤️';
+                        noButton.innerText = '💕 永远甜蜜 💕';
+                        noButton.style.transform = 'translate(0px, 0px)';
+                        const finalMsg = document.createElement('div');
+                        finalMsg.style.marginTop = '20px';
+                        finalMsg.style.fontSize = '1.2rem';
+                        finalMsg.style.fontWeight = 'bold';
+                        finalMsg.style.color = '#ff3b6f';
+                        finalMsg.innerHTML = '✨ 愿往后余生，冷暖有相知 ✨';
+                        document.querySelector('.buttons-area')?.after(finalMsg);
+                    }
+                });
+            }
+            for (let i = 0; i < 10; i++) {
+                setTimeout(() => {
+                    if (document.body.contains(overlay)) {
+                        canvasConfetti({ particleCount: 50, spread: 55, origin: { y: 0.8, x: Math.random() }, colors: ['#ff98aa', '#ff556c'] });
+                    }
+                }, i * 300);
+            }
+        }
+        
+        function onYes() {
+            if (isConfirmed) return;
+            const card = document.querySelector('.card');
+            card.style.transform = 'scale(1.02)';
+            setTimeout(() => { if(card) card.style.transform = ''; }, 200);
+            showFloatingTip('✨ 我也超喜欢你！ 我们在一起吧 ✨', '#ff6680');
+            showSuccessOverlay();
+        }
+        
+        yesButton.addEventListener('click', onYes);
+        yesButton.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            onYes();
+        });
+        
+        bindEscapeEvents();
+        
+        window.addEventListener('resize', () => {
+            if (!isConfirmed && noButton) {
+                noButton.style.transform = 'translate(0px, 0px)';
+                setTimeout(() => {
+                    if (noButton && !isConfirmed) makeNoRunAway();
+                }, 30);
+            }
+        });
+        
+        // 鼠标/手指划过出现小爱心（移动端轻触效果）
+        document.body.addEventListener('mousemove', (e) => {
+            if (isConfirmed) return;
+            if (Math.random() > 0.94) {
+                const loveSpan = document.createElement('div');
+                loveSpan.innerText = '❤️';
+                loveSpan.style.position = 'fixed';
+                loveSpan.style.left = e.pageX - 10 + 'px';
+                loveSpan.style.top = e.pageY - 10 + 'px';
+                loveSpan.style.fontSize = '18px';
+                loveSpan.style.pointerEvents = 'none';
+                loveSpan.style.zIndex = '9999';
+                loveSpan.style.opacity = '0.8';
+                loveSpan.style.transition = 'all 0.6s ease';
+                document.body.appendChild(loveSpan);
+                setTimeout(() => {
+                    loveSpan.style.opacity = '0';
+                    loveSpan.style.transform = 'translateY(-20px) scale(0.5)';
+                    setTimeout(() => loveSpan.remove(), 700);
+                }, 50);
+            }
+        });
+        
+        console.log("%c❤️ 手机版520表白墙，快点击“我愿意”抱走你的幸福吧 ❤️", "color: #ff4d6d; font-size: 16px; font-weight: bold;");
+    })();
+</script>
+</body>
+</html>
