@@ -62,20 +62,16 @@ body{
             translateY(110vh)
             scale(.6)
             rotate(0deg);
-
         opacity:0;
     }
-
     20%{
         opacity:.8;
     }
-
     100%{
         transform:
             translateY(-20vh)
             scale(1.2)
             rotate(360deg);
-
         opacity:0;
     }
 }
@@ -111,7 +107,6 @@ body{
     0%,100%{
         transform:translateY(0px);
     }
-
     50%{
         transform:translateY(-6px);
     }
@@ -129,15 +124,12 @@ body{
     0%,100%{
         transform:scale(1);
     }
-
     25%{
         transform:scale(1.12);
     }
-
     45%{
         transform:scale(1.22);
     }
-
     60%{
         transform:scale(1.1);
     }
@@ -252,24 +244,66 @@ body{
     background:#f3d7df;
     color:#5c3748;
 
-    position:fixed;
+    /* 初始不加 fixed，等 JS 在 load 时捕获位置后再设置 */
+    position:relative;
 
     z-index:50;
 
     transition:
-        left .28s cubic-bezier(.22,1,.36,1),
-        top .28s cubic-bezier(.22,1,.36,1),
-        transform .2s ease;
+        left .22s cubic-bezier(.34,1.56,.64,1),
+        top .22s cubic-bezier(.34,1.56,.64,1),
+        transform .15s ease;
 }
 
-/* 提示 */
+.btn-no.fixed{
+    position:fixed;
+}
 
-.hint{
-    margin-top:28px;
+/* 拖尾小爱心 */
 
-    color:#b94b73;
+.trail-heart{
+    position:fixed;
+    pointer-events:none;
+    z-index:49;
+    font-size:20px;
+    animation:trailFade .6s ease-out forwards;
+}
 
-    font-size:.92rem;
+@keyframes trailFade{
+    0%{
+        opacity:1;
+        transform:scale(1) translateY(0);
+    }
+    100%{
+        opacity:0;
+        transform:scale(.3) translateY(-30px);
+    }
+}
+
+/* 冲击波 */
+
+.shockwave{
+    position:fixed;
+    pointer-events:none;
+    z-index:9998;
+    border-radius:50%;
+    border:3px solid rgba(255,77,136,.6);
+    animation:shockwaveExpand 1s ease-out forwards;
+}
+
+@keyframes shockwaveExpand{
+    0%{
+        width:20px;
+        height:20px;
+        opacity:1;
+    }
+    100%{
+        width:800px;
+        height:800px;
+        opacity:0;
+        margin-left:-400px;
+        margin-top:-400px;
+    }
 }
 
 /* 成功层 */
@@ -293,13 +327,8 @@ body{
 }
 
 @keyframes fadeIn{
-    from{
-        opacity:0;
-    }
-
-    to{
-        opacity:1;
-    }
+    from{ opacity:0; }
+    to{ opacity:1; }
 }
 
 .success-card{
@@ -325,7 +354,6 @@ body{
         transform:scale(.8);
         opacity:0;
     }
-
     100%{
         transform:scale(1);
         opacity:1;
@@ -372,6 +400,26 @@ body{
     font-weight:700;
 
     cursor:pointer;
+}
+
+/* 终极爱心爆炸粒子 */
+
+.final-heart-particle{
+    position:fixed;
+    pointer-events:none;
+    z-index:10000;
+    animation:finalHeartBurst 3s ease-out forwards;
+}
+
+@keyframes finalHeartBurst{
+    0%{
+        opacity:1;
+        transform:translate(0,0) scale(1) rotate(0deg);
+    }
+    100%{
+        opacity:0;
+        transform:translate(var(--tx),var(--ty)) scale(.4) rotate(var(--tr));
+    }
 }
 
 @media(max-width:600px){
@@ -445,7 +493,7 @@ body{
     </div>
 
     <div class="hint">
-        点“不要嘛”它会害羞逃跑～
+        点"不要嘛"它会害羞逃跑～
     </div>
 
 </div>
@@ -467,6 +515,7 @@ body{
         document.getElementById('mainCard');
 
     let confirmed = false;
+    let noFixed = false;
 
     /* =======================
        背景漂浮爱心
@@ -481,31 +530,22 @@ body{
     ];
 
     function createHeart(){
-
         const heart =
             document.createElement('div');
-
-        heart.className =
-            'heart-bg';
-
+        heart.className = 'heart-bg';
         heart.innerHTML =
             emojis[
                 Math.floor(
                     Math.random()*emojis.length
                 )
             ];
-
         heart.style.left =
             Math.random()*100 + 'vw';
-
         heart.style.fontSize =
             (14 + Math.random()*20) + 'px';
-
         heart.style.animationDuration =
             (6 + Math.random()*6) + 's';
-
         floatingHearts.appendChild(heart);
-
         setTimeout(() => {
             heart.remove();
         },12000);
@@ -519,314 +559,303 @@ body{
 
     /* =======================
        初始化 NO 按钮位置
+       先让它在 flex 流中自然渲染，
+       再用 getBoundingClientRect 捕获精确位置后 fixed
     ======================= */
 
     function initNoPosition(){
-
-        const rect =
-            noBtn.getBoundingClientRect();
-
-        noBtn.style.left =
-            rect.left + 'px';
-
-        noBtn.style.top =
-            rect.top + 'px';
+        if(noFixed) return;
+        const rect = noBtn.getBoundingClientRect();
+        noBtn.style.left = rect.left + 'px';
+        noBtn.style.top = rect.top + 'px';
+        noBtn.style.width = rect.width + 'px';
+        noBtn.classList.add('fixed');
+        noFixed = true;
     }
 
-    window.addEventListener(
-        'load',
-        initNoPosition
-    );
+    window.addEventListener('load', initNoPosition);
+
+    // 窗口大小变化时重新校准
+    let resizeDebounce;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeDebounce);
+        resizeDebounce = setTimeout(() => {
+            if(confirmed || !noFixed) return;
+            // 保持在屏幕内
+            const btnW = noBtn.offsetWidth;
+            const btnH = noBtn.offsetHeight;
+            const maxX = window.innerWidth - btnW - 10;
+            const maxY = window.innerHeight - btnH - 10;
+            let x = parseFloat(noBtn.style.left) || 0;
+            let y = parseFloat(noBtn.style.top) || 0;
+            x = Math.max(10, Math.min(maxX, x));
+            y = Math.max(10, Math.min(maxY, y));
+            noBtn.style.left = x + 'px';
+            noBtn.style.top = y + 'px';
+        }, 300);
+    });
 
     /* =======================
-       NO 按钮逃跑
+       NO 按钮逃跑（炫酷版）
     ======================= */
 
-    function moveNoBtn(){
+    function spawnTrailHeart(x, y){
+        const h = document.createElement('div');
+        h.className = 'trail-heart';
+        h.innerHTML = ['💕','💖','✨','💗','❤️'][Math.floor(Math.random()*5)];
+        h.style.left = x + 'px';
+        h.style.top = y + 'px';
+        document.body.appendChild(h);
+        setTimeout(() => h.remove(), 700);
+    }
 
+    function moveNoBtn(){
         if(confirmed) return;
 
-        const btnW =
-            noBtn.offsetWidth;
+        if(!noFixed){
+            initNoPosition();
+        }
 
-        const btnH =
-            noBtn.offsetHeight;
-
+        const btnW = noBtn.offsetWidth;
+        const btnH = noBtn.offsetHeight;
         const padding = 10;
 
-        const maxX =
-            window.innerWidth
-            - btnW
-            - padding;
+        const maxX = window.innerWidth - btnW - padding;
+        const maxY = window.innerHeight - btnH - padding;
 
-        const maxY =
-            window.innerHeight
-            - btnH
-            - padding;
+        const currentX = parseFloat(noBtn.style.left) || 0;
+        const currentY = parseFloat(noBtn.style.top) || 0;
 
-        const currentX =
-            parseFloat(noBtn.style.left) || 0;
+        const centerX = window.innerWidth / 2;
+        const centerY = window.innerHeight / 2;
 
-        const currentY =
-            parseFloat(noBtn.style.top) || 0;
+        // 更大幅度的逃跑距离
+        const escapeDist = 120 + Math.random() * 200;
+        const randomAngle = Math.random() * Math.PI * 2;
 
-        const centerX =
-            window.innerWidth / 2;
+        let newX = currentX + Math.cos(randomAngle) * escapeDist;
+        let newY = currentY + Math.sin(randomAngle) * escapeDist;
 
-        const centerY =
-            window.innerHeight / 2;
+        // 如果跑到了屏幕外，弹回反向
+        if(newX < padding || newX > maxX){
+            newX = currentX - Math.cos(randomAngle) * escapeDist;
+        }
+        if(newY < padding || newY > maxY){
+            newY = currentY - Math.sin(randomAngle) * escapeDist;
+        }
 
-        let dx =
-            currentX < centerX
-            ? Math.random()*180
-            : -Math.random()*180;
+        newX = Math.max(padding, Math.min(maxX, newX));
+        newY = Math.max(padding, Math.min(maxY, newY));
 
-        let dy =
-            currentY < centerY
-            ? Math.random()*140
-            : -Math.random()*140;
+        // 生成拖尾爱心（在旧位置）
+        const cx = currentX + btnW/2;
+        const cy = currentY + btnH/2;
+        for(let i=0;i<4;i++){
+            setTimeout(() => {
+                spawnTrailHeart(
+                    cx + (Math.random()-0.5)*40,
+                    cy + (Math.random()-0.5)*30
+                );
+            }, i*40);
+        }
 
-        let newX = currentX + dx;
-        let newY = currentY + dy;
+        // 随机旋转角度
+        const rotateDeg = (Math.random() - 0.5) * 50;
 
-        newX =
-            Math.max(
-                padding,
-                Math.min(maxX,newX)
-            );
-
-        newY =
-            Math.max(
-                padding,
-                Math.min(maxY,newY)
-            );
-
-        noBtn.style.left =
-            newX + 'px';
-
-        noBtn.style.top =
-            newY + 'px';
-
-        noBtn.style.transform =
-            'scale(1.08)';
+        noBtn.style.left = newX + 'px';
+        noBtn.style.top = newY + 'px';
+        noBtn.style.transform = `scale(1.15) rotate(${rotateDeg}deg)`;
 
         setTimeout(() => {
             if(!confirmed){
-                noBtn.style.transform =
-                    'scale(1)';
+                noBtn.style.transform = 'scale(1) rotate(0deg)';
             }
-        },180);
+        }, 220);
 
         const texts = [
             '抓不到~',
             '略略略~',
             '不可以！',
             '跑啦~',
-            '点空啦~'
+            '点空啦~',
+            '嘿嘿~',
+            '再试一次~'
         ];
 
-        if(Math.random() > 0.5){
-
+        if(Math.random() > 0.4){
             noBtn.innerText =
-                texts[
-                    Math.floor(
-                        Math.random()*texts.length
-                    )
-                ];
-
+                texts[Math.floor(Math.random()*texts.length)];
             setTimeout(() => {
-
                 if(!confirmed){
-
-                    noBtn.innerText =
-                        '🙅 不要嘛 🙅';
+                    noBtn.innerText = '🙅 不要嘛 🙅';
                 }
-
-            },600);
+            }, 500);
         }
 
         if(navigator.vibrate){
-            navigator.vibrate(15);
+            navigator.vibrate([10, 30, 10]);
         }
     }
 
-    noBtn.addEventListener(
-        'mouseenter',
-        moveNoBtn
-    );
-
-    noBtn.addEventListener(
-        'touchstart',
-        e => {
-
-            e.preventDefault();
-
-            moveNoBtn();
-        },
-        {passive:false}
-    );
+    noBtn.addEventListener('mouseenter', moveNoBtn);
+    noBtn.addEventListener('touchstart', e => {
+        e.preventDefault();
+        moveNoBtn();
+    }, {passive:false});
 
     /* =======================
-       YES 特效
+       YES 特效（震撼升级版）
     ======================= */
 
     function launchLoveEffects(){
 
-        document.body.animate(
-            [
-                {
-                    filter:'brightness(1)'
-                },
-                {
-                    filter:'brightness(1.15)'
-                },
-                {
-                    filter:'brightness(1)'
-                }
-            ],
-            {
-                duration:1200
-            }
-        );
+        // 屏幕闪光
+        const flash = document.createElement('div');
+        flash.style.cssText = `
+            position:fixed;inset:0;z-index:9997;
+            background:rgba(255,255,255,.5);
+            pointer-events:none;
+            animation:flashFade .5s ease-out forwards;
+        `;
+        document.body.appendChild(flash);
+        setTimeout(() => flash.remove(), 600);
 
-        mainCard.animate(
-            [
-                {
-                    transform:'scale(1)'
-                },
-                {
-                    transform:
-                        'scale(1.04) translateY(-8px)'
-                },
-                {
-                    transform:'scale(1)'
-                }
-            ],
-            {
-                duration:1000,
-                easing:'ease-out'
-            }
-        );
+        // 注入 flash 动画
+        if(!document.getElementById('flashStyle')){
+            const s = document.createElement('style');
+            s.id = 'flashStyle';
+            s.innerHTML = '@keyframes flashFade{0%{opacity:1}100%{opacity:0}}';
+            document.head.appendChild(s);
+        }
 
-        /* 中心心形爆发 */
+        // 卡牌弹跳
+        mainCard.animate([
+            { transform:'scale(1) translateY(0)' },
+            { transform:'scale(1.06) translateY(-12px)' },
+            { transform:'scale(.97) translateY(2px)' },
+            { transform:'scale(1.02) translateY(-4px)' },
+            { transform:'scale(1) translateY(0)' }
+        ], {
+            duration:800,
+            easing:'cubic-bezier(.22,1,.36,1)'
+        });
 
+        // 冲击波（从卡牌中心扩散）
+        const cardRect = mainCard.getBoundingClientRect();
+        const cx = cardRect.left + cardRect.width/2;
+        const cy = cardRect.top + cardRect.height/2;
+        for(let i=0;i<3;i++){
+            setTimeout(() => {
+                const wave = document.createElement('div');
+                wave.className = 'shockwave';
+                wave.style.left = cx + 'px';
+                wave.style.top = cy + 'px';
+                wave.style.width = '20px';
+                wave.style.height = '20px';
+                wave.style.marginLeft = '-10px';
+                wave.style.marginTop = '-10px';
+                wave.style.borderColor =
+                    ['rgba(255,77,136,.7)','rgba(255,133,161,.5)','rgba(255,200,210,.4)'][i];
+                wave.style.animationDuration = (1 + i*0.3) + 's';
+                wave.style.animationDelay = (i*0.15) + 's';
+                document.body.appendChild(wave);
+                setTimeout(() => wave.remove(), 2000);
+            }, i*120);
+        }
+
+        // 第一波：中心爱心爆发
         canvasConfetti({
-
-            particleCount:160,
-
-            spread:90,
-
-            startVelocity:28,
-
-            origin:{
-                x:.5,
-                y:.6
-            },
-
-            scalar:1.2,
-
+            particleCount:200,
+            spread:100,
+            startVelocity:35,
+            origin:{ x:.5, y:.55 },
+            scalar:1.3,
             colors:[
-                '#ff4d88',
-                '#ff85a1',
-                '#ffd1dc',
-                '#fff0f5'
+                '#ff4d88','#ff85a1','#ffd1dc','#fff0f5',
+                '#ffb3c6','#ff0a54','#ff7096'
             ],
-
             shapes:['heart']
         });
 
-        /* 两边柔和彩带 */
-
+        // 第二波：稍延迟，从侧面喷射
         setTimeout(() => {
-
             canvasConfetti({
-
-                particleCount:80,
-
-                angle:60,
-
-                spread:55,
-
-                origin:{
-                    x:0,
-                    y:.7
-                },
-
-                colors:[
-                    '#ffb3c6',
-                    '#ff8fab',
-                    '#ffe5ec'
-                ]
+                particleCount:120,
+                angle:50,
+                spread:60,
+                origin:{ x:0, y:.65 },
+                startVelocity:40,
+                scalar:1.1,
+                colors:['#ffb3c6','#ff8fab','#ffe5ec','#ff7096']
             });
-
             canvasConfetti({
-
-                particleCount:80,
-
-                angle:120,
-
-                spread:55,
-
-                origin:{
-                    x:1,
-                    y:.7
-                },
-
-                colors:[
-                    '#ffb3c6',
-                    '#ff8fab',
-                    '#ffe5ec'
-                ]
+                particleCount:120,
+                angle:130,
+                spread:60,
+                origin:{ x:1, y:.65 },
+                startVelocity:40,
+                scalar:1.1,
+                colors:['#ffb3c6','#ff8fab','#ffe5ec','#ff7096']
             });
+        }, 200);
 
-        },250);
+        // 第三波：从上方洒落
+        setTimeout(() => {
+            canvasConfetti({
+                particleCount:100,
+                angle:90,
+                spread:120,
+                origin:{ x:.5, y:.3 },
+                startVelocity:25,
+                scalar:1,
+                colors:['#ffd1dc','#ffe5ec','#fff0f5','#ffb3c6'],
+                shapes:['heart','circle']
+            });
+        }, 450);
 
-        /* 爱心雨 */
+        // 第四波：全屏金色闪闪
+        setTimeout(() => {
+            canvasConfetti({
+                particleCount:80,
+                spread:360,
+                startVelocity:20,
+                origin:{ x:.5, y:.5 },
+                scalar:.9,
+                colors:['#ffd700','#ffb347','#ffe5b4','#fff8dc'],
+                shapes:['star']
+            });
+        }, 700);
 
-        for(let i=0;i<50;i++){
-
+        // 爱心雨 - 更密集
+        for(let i=0;i<80;i++){
             setTimeout(() => {
-
-                const heart =
-                    document.createElement('div');
-
-                heart.innerHTML = '💖';
-
-                heart.style.position = 'fixed';
-
-                heart.style.left =
-                    Math.random()*100 + 'vw';
-
-                heart.style.top = '-40px';
-
-                heart.style.fontSize =
-                    (18 + Math.random()*20) + 'px';
-
-                heart.style.opacity = '.9';
-
-                heart.style.pointerEvents = 'none';
-
-                heart.style.zIndex = '9999';
-
-                heart.style.transition =
-                    'transform 4s linear, opacity 4s';
-
+                const heart = document.createElement('div');
+                heart.innerHTML = ['💖','💕','💗','❤️','✨','💝'][Math.floor(Math.random()*6)];
+                heart.style.cssText = `
+                    position:fixed;
+                    left:${Math.random()*100}vw;
+                    top:-50px;
+                    font-size:${16 + Math.random()*26}px;
+                    opacity:1;
+                    pointer-events:none;
+                    z-index:10000;
+                `;
                 document.body.appendChild(heart);
 
-                requestAnimationFrame(() => {
+                const duration = 3 + Math.random()*3;
+                const tx = (Math.random()-0.5)*120;
+                const rot = (Math.random()-0.5)*360;
 
-                    heart.style.transform =
-                        `translateY(${window.innerHeight + 80}px)
-                         rotate(${Math.random()*360}deg)`;
-
-                    heart.style.opacity = '0';
+                heart.animate([
+                    { transform:`translateY(0) translateX(0) rotate(0deg)`, opacity:1 },
+                    { transform:`translateY(${window.innerHeight+80}px) translateX(${tx}px) rotate(${rot}deg)`, opacity:0 }
+                ], {
+                    duration: duration*1000,
+                    easing:'cubic-bezier(.4,0,1,1)'
                 });
 
-                setTimeout(() => {
-                    heart.remove();
-                },4000);
-
-            },i*120);
+                setTimeout(() => heart.remove(), duration*1000+200);
+            }, i*80);
         }
     }
 
@@ -835,90 +864,82 @@ body{
     ======================= */
 
     function showSuccess(){
-
         if(confirmed) return;
-
         confirmed = true;
 
         launchLoveEffects();
 
-        const overlay =
-            document.createElement('div');
+        // 爆炸大爱心粒子
+        setTimeout(() => {
+            const cardRect = mainCard.getBoundingClientRect();
+            const cx = cardRect.left + cardRect.width/2;
+            const cy = cardRect.top + cardRect.height/2;
+            const heartEmojis = ['💖','💕','💗','❤️','💝','💘','💓'];
+            for(let i=0;i<30;i++){
+                const p = document.createElement('div');
+                p.className = 'final-heart-particle';
+                p.innerHTML = heartEmojis[Math.floor(Math.random()*heartEmojis.length)];
+                p.style.left = cx + 'px';
+                p.style.top = cy + 'px';
+                p.style.fontSize = (20 + Math.random()*30) + 'px';
+                const angle = Math.random()*Math.PI*2;
+                const dist = 100 + Math.random()*250;
+                p.style.setProperty('--tx', Math.cos(angle)*dist + 'px');
+                p.style.setProperty('--ty', Math.sin(angle)*dist - 80 + 'px');
+                p.style.setProperty('--tr', (Math.random()-0.5)*720 + 'deg');
+                p.style.animationDuration = (2 + Math.random()*2) + 's';
+                document.body.appendChild(p);
+                setTimeout(() => p.remove(), 4000);
+            }
+        }, 300);
 
-        overlay.className =
-            'success-overlay';
+        // 延迟显示弹窗
+        setTimeout(() => {
+            const overlay = document.createElement('div');
+            overlay.className = 'success-overlay';
 
-        overlay.innerHTML = `
-            <div class="success-card">
-
-                <div class="final-heart">
-                    💖
+            overlay.innerHTML = `
+                <div class="success-card">
+                    <div class="final-heart">💖</div>
+                    <h1>我们在一起啦</h1>
+                    <p>✨ 520 快乐 ✨</p>
+                    <p>
+                        从今天开始，<br>
+                        每一个日落与晚风，<br>
+                        我都想陪你一起看 ❤️
+                    </p>
+                    <button class="close-btn">💕 珍藏此刻 💕</button>
                 </div>
+            `;
 
-                <h1>
-                    我们在一起啦
-                </h1>
+            document.body.appendChild(overlay);
 
-                <p>
-                    ✨ 520 快乐 ✨
-                </p>
+            overlay
+                .querySelector('.close-btn')
+                .addEventListener('click',() => {
+                    overlay.remove();
+                    yesBtn.disabled = true;
+                    noBtn.disabled = true;
+                    yesBtn.innerHTML = '❤️ 永远爱你 ❤️';
+                    noBtn.innerHTML = '💕 永远甜蜜 💕';
 
-                <p>
-                    从今天开始，
-                    每一个日落与晚风，
-                    我都想陪你一起看 ❤️
-                </p>
+                    // 如果还没 fixed，先初始化
+                    if(!noFixed) initNoPosition();
 
-                <button class="close-btn">
-                    💕 珍藏此刻 💕
-                </button>
-
-            </div>
-        `;
-
-        document.body.appendChild(overlay);
-
-        overlay
-            .querySelector('.close-btn')
-            .addEventListener('click',() => {
-
-                overlay.remove();
-
-                yesBtn.disabled = true;
-                noBtn.disabled = true;
-
-                yesBtn.innerHTML =
-                    '❤️ 永远爱你 ❤️';
-
-                noBtn.innerHTML =
-                    '💕 永远甜蜜 💕';
-
-                noBtn.style.left =
-                    '50%';
-
-                noBtn.style.top =
-                    'calc(50% + 80px)';
-
-                noBtn.style.transform =
-                    'translateX(-50%)';
-            });
+                    noBtn.style.position = 'fixed';
+                    noBtn.style.left = '50%';
+                    noBtn.style.top = 'auto';
+                    noBtn.style.bottom = '60px';
+                    noBtn.style.transform = 'translateX(-50%)';
+                });
+        }, 500);
     }
 
-    yesBtn.addEventListener(
-        'click',
-        showSuccess
-    );
-
-    yesBtn.addEventListener(
-        'touchstart',
-        e => {
-
-            e.preventDefault();
-
-            showSuccess();
-        },
-        {passive:false}
-    );
+    yesBtn.addEventListener('click', showSuccess);
+    yesBtn.addEventListener('touchstart', e => {
+        e.preventDefault();
+        showSuccess();
+    }, {passive:false});
 
 })();
 </script>
