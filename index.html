@@ -11,7 +11,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            user-select: none; /* 避免拖动文字，保持整洁 */
+            user-select: none;
         }
 
         body {
@@ -28,7 +28,7 @@
             cursor: default;
         }
 
-        /* 浮动小爱心背景 (动态生成心形元素) */
+        /* 浮动小爱心背景 */
         .floating-hearts {
             position: fixed;
             top: 0;
@@ -86,6 +86,18 @@
             }
         }
 
+        /* 卡片震动动画 */
+        .card-shake {
+            animation: cardShake 0.2s ease-in-out 0s 2;
+        }
+
+        @keyframes cardShake {
+            0% { transform: translateX(0px); }
+            25% { transform: translateX(4px); }
+            75% { transform: translateX(-4px); }
+            100% { transform: translateX(0px); }
+        }
+
         /* 跳动的大爱心 & 520 数字 */
         .love-header {
             margin-bottom: 20px;
@@ -137,7 +149,6 @@
             letter-spacing: 1px;
         }
 
-        /* 告白文字 */
         .confession-text {
             margin: 28px 0 20px;
             font-size: 1.65rem;
@@ -165,7 +176,7 @@
             text-shadow: 2px 2px 10px rgba(255, 100, 130, 0.4);
         }
 
-        /* 按钮区域 (flex 内两个按钮) */
+        /* 按钮区域 */
         .buttons-area {
             margin: 35px 0 15px;
             display: flex;
@@ -173,7 +184,7 @@
             gap: 35px;
             flex-wrap: wrap;
             position: relative;
-            min-height: 100px;  /* 给逃逸预留足够空间 */
+            min-height: 100px;
         }
 
         .btn {
@@ -206,24 +217,30 @@
             box-shadow: 0 8px 18px rgba(255, 50, 100, 0.4);
         }
 
+        /* 我愿意按钮兴奋跳动 */
+        .yes-excited {
+            animation: yesJump 0.3s ease 0s 2;
+        }
+
+        @keyframes yesJump {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); background: #ff3366; box-shadow: 0 0 15px #ff6699; }
+            100% { transform: scale(1); }
+        }
+
         .btn-no {
             background: #d9c7cd;
             color: #4b2e38;
             border: 2px solid #fce4ea;
-            transition: transform 0.25s cubic-bezier(0.34, 1.3, 0.55, 1), background 0.2s;
+            transition: transform 0.22s cubic-bezier(0.2, 1.2, 0.4, 1);
             position: relative;
         }
 
-        .btn-no:hover {
-            background: #c2a9b1;
+        .btn-no:active {
+            transform: scale(0.96);
         }
 
-        /* 逃跑专用激烈动画 */
-        .no-run {
-            transition: transform 0.2s cubic-bezier(0.34, 1.2, 0.64, 1);
-        }
-
-        /* 成功后的覆盖层+惊喜 */
+        /* 成功覆盖层 */
         .success-overlay {
             position: fixed;
             top: 0;
@@ -294,7 +311,6 @@
             100% { transform: scale(1); opacity: 1; }
         }
 
-        /* 提示小尾巴 */
         .hint-text {
             margin-top: 30px;
             font-size: 0.9rem;
@@ -306,7 +322,6 @@
             backdrop-filter: blur(2px);
         }
 
-        /* 响应式调整 —— 完美适配手机端 */
         @media (max-width: 550px) {
             .card {
                 padding: 20px 18px 35px;
@@ -340,7 +355,6 @@
             }
         }
 
-        /* 针对小折叠屏更稳妥 */
         @media (max-width: 400px) {
             .btn {
                 font-size: 1rem;
@@ -355,15 +369,6 @@
             .hint-text {
                 font-size: 0.75rem;
             }
-        }
-
-        /* 额外小动画：按钮反弹时加一个冲击波效果 */
-        @keyframes shockWave {
-            0% { box-shadow: 0 0 0 0 rgba(255, 80, 120, 0.4); }
-            100% { box-shadow: 0 0 0 12px rgba(255, 80, 120, 0); }
-        }
-        .btn-no:active {
-            animation: shockWave 0.3s ease-out;
         }
     </style>
 </head>
@@ -387,19 +392,18 @@
         余生好长，你最难忘。❤️
     </div>
     
-    <!-- 按钮区域，逃跑的No就在这里 -->
     <div class="buttons-area" id="buttonContainer">
         <button class="btn btn-yes" id="yesBtn">💖 我愿意 💖</button>
-        <button class="btn btn-no no-run" id="noBtn">🙅 不要嘛 🙅</button>
+        <button class="btn btn-no" id="noBtn">🙅 不要嘛 🙅</button>
     </div>
     <div class="hint-text">
-        🎈 戳一下“不要嘛” → 它会像触电一样弹飞！最后还是得点 💖我愿意💖 哟！
+        🎈 戳一下“不要嘛” → 它会瞬间飞到天边！整个画面都会跟着心动 💖
     </div>
 </div>
 
 <script>
     (function() {
-        // ---------- 飘浮爱心背景生成 ----------
+        // ----- 飘浮爱心背景 (浪漫氛围) -----
         const heartsContainer = document.getElementById('floatingHearts');
         const heartEmojis = ['❤️', '💖', '💗', '💓', '💕', '💞', '🌸', '🌹', '✨', '💝'];
         
@@ -408,91 +412,121 @@
             heart.classList.add('heart-bg');
             const randomHeart = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
             heart.innerText = randomHeart;
-            const size = Math.random() * 20 + 12; // 12px - 32px
+            const size = Math.random() * 20 + 12;
             heart.style.fontSize = size + 'px';
             heart.style.left = Math.random() * 100 + '%';
             heart.style.animationDuration = Math.random() * 8 + 6 + 's';
             heart.style.animationDelay = Math.random() * 5 + 's';
             heart.style.opacity = Math.random() * 0.4 + 0.2;
             heartsContainer.appendChild(heart);
-            
-            heart.addEventListener('animationend', () => {
-                heart.remove();
-            });
+            heart.addEventListener('animationend', () => heart.remove());
         }
         
         for (let i = 0; i < 35; i++) {
             setTimeout(() => createFloatingHeart(), i * 180);
         }
-        setInterval(() => {
-            if (document.querySelector('.success-overlay') === null) {
-                createFloatingHeart();
-            }
+        let bgInterval = setInterval(() => {
+            if (!document.querySelector('.success-overlay')) createFloatingHeart();
         }, 1800);
         
-        // ---------- DOM 元素 ----------
+        // ----- DOM 元素 -----
         const yesButton = document.getElementById('yesBtn');
         const noButton = document.getElementById('noBtn');
-        const buttonContainer = document.getElementById('buttonContainer');
+        const mainCard = document.getElementById('mainCard');
         let isConfirmed = false;
+        let escapeTimer = null;      // 用于清除之前的恢复定时器，避免冲突
         
-        // 获取父容器边界（扩展范围，让逃逸更远，支持瞬间飞向角落）
-        function getUltraEscapeRange(btn) {
-            if (!buttonContainer) return { maxX: 0, maxY: 0, minX: 0, minY: 0 };
-            const containerRect = buttonContainer.getBoundingClientRect();
+        // 获取按钮安全偏移范围 (保证按钮完整显示在屏幕内)
+        function getSafeWindowOffset(btn) {
+            // 获取按钮当前相对文档的原始位置 (transform重置后)
             const btnRect = btn.getBoundingClientRect();
-            // 相对父容器偏移基准 (原始未偏移时)
-            const relativeLeft = btnRect.left - containerRect.left;
-            const relativeTop = btnRect.top - containerRect.top;
-            // 扩大逃跑范围系数: 允许飞出父容器边界，但不超过屏幕可视区的边缘（使得看起来飞得很远）
-            // 使用窗口边界来限制最大距离，避免按钮飞出屏幕不可交互（但太远也不好，限制在可视区内但尽可能夸张）
-            const viewportWidth = window.innerWidth;
-            const viewportHeight = window.innerHeight;
-            const containerGlobalLeft = containerRect.left;
-            const containerGlobalTop = containerRect.top;
+            const winW = window.innerWidth;
+            const winH = window.innerHeight;
+            const btnW = btnRect.width;
+            const btnH = btnRect.height;
+            // 期望按钮完整可见，留出边缘间隙 8px
+            const minLeft = 8;
+            const maxLeft = winW - btnW - 8;
+            const minTop = 8;
+            const maxTop = winH - btnH - 8;
             
-            // 按钮全局绝对坐标允许范围: 左右上下必须保证按钮有一部分在屏幕内，避免完全消失无法点击
-            // 但为了让“飞得很远”感觉，允许靠近边缘，但不超出屏幕外部太离谱，否则用户找不到按钮
-            const minGlobalX = 5;
-            const maxGlobalX = viewportWidth - btnRect.width - 5;
-            const minGlobalY = 5;
-            const maxGlobalY = viewportHeight - btnRect.height - 5;
+            // 当前绝对位置(left, top)
+            const currentLeft = btnRect.left;
+            const currentTop = btnRect.top;
             
-            // 当前全局位置（无偏移时的全局位置）
-            const originalGlobalLeft = btnRect.left;
-            const originalGlobalTop = btnRect.top;
+            // 可以偏移的范围（相对于当前位置）
+            let offsetXMin = minLeft - currentLeft;
+            let offsetXMax = maxLeft - currentLeft;
+            let offsetYMin = minTop - currentTop;
+            let offsetYMax = maxTop - currentTop;
             
-            // 偏移量允许的全局极限
-            const maxTranslateX = maxGlobalX - originalGlobalLeft;
-            const minTranslateX = minGlobalX - originalGlobalLeft;
-            const maxTranslateY = maxGlobalY - originalGlobalTop;
-            const minTranslateY = minGlobalY - originalGlobalTop;
-            
-            return {
-                minX: minTranslateX,
-                maxX: maxTranslateX,
-                minY: minTranslateY,
-                maxY: maxTranslateY
-            };
+            // 为了飞得更远，但必须保证不超出可见区域，因此用极限偏移
+            return { minX: offsetXMin, maxX: offsetXMax, minY: offsetYMin, maxY: offsetYMax };
         }
         
-        // 让No按钮产生“应激弹射”效果：飞向随机方向很远的位置，伴随抖动
-        function makeNoRunAwayExtreme() {
+        // 让整个画面产生协同特效：卡片震动，YES按钮雀跃，背景爱心加速
+        function triggerGlobalReaction() {
+            if (isConfirmed) return;
+            // 1. 卡片震动
+            mainCard.classList.add('card-shake');
+            setTimeout(() => mainCard.classList.remove('card-shake'), 300);
+            
+            // 2. 我愿意按钮兴奋跳动
+            yesButton.classList.add('yes-excited');
+            setTimeout(() => yesButton.classList.remove('yes-excited'), 400);
+            
+            // 3. 背景爱心雨短暂加速 (临时加快生成速度)
+            for (let i = 0; i < 8; i++) {
+                setTimeout(() => createFloatingHeart(), i * 50);
+            }
+            // 4. 飘出“抓住我呀”小文字反馈
+            const tip = document.createElement('div');
+            tip.innerText = '💨 咻！飞走啦～ 快按“我愿意”吧 💕';
+            tip.style.position = 'fixed';
+            tip.style.bottom = '30%';
+            tip.style.left = '50%';
+            tip.style.transform = 'translateX(-50%)';
+            tip.style.backgroundColor = '#ff88aa';
+            tip.style.color = 'white';
+            tip.style.padding = '8px 18px';
+            tip.style.borderRadius = '40px';
+            tip.style.fontSize = '0.9rem';
+            tip.style.fontWeight = 'bold';
+            tip.style.zIndex = '999';
+            tip.style.whiteSpace = 'nowrap';
+            tip.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+            tip.style.pointerEvents = 'none';
+            document.body.appendChild(tip);
+            setTimeout(() => {
+                tip.style.opacity = '0';
+                tip.style.transition = 'opacity 0.4s';
+                setTimeout(() => tip.remove(), 500);
+            }, 1200);
+        }
+        
+        // 核心: 让“不要嘛”按钮弹射飞远 (大范围移动，且绝对不会消失)
+        function makeNoFlyFar() {
             if (isConfirmed) return;
             if (!noButton) return;
             
-            // 清除当前的transform以获取真实原始位置边界
-            noButton.style.transform = 'translate(0px, 0px)';
-            // 获取超大偏移范围 (屏幕上可用极限)
-            const range = getUltraEscapeRange(noButton);
+            // 清除之前的恢复定时器，避免旧定时器覆盖新位移（修复消失Bug的关键）
+            if (escapeTimer) {
+                clearTimeout(escapeTimer);
+                escapeTimer = null;
+            }
+            
+            // 1. 首先重置transform为none，获取真实原始位置范围
+            noButton.style.transform = '';
+            // 强制重绘（可选）
+            void noButton.offsetHeight;
+            
+            // 2. 计算基于窗口可见性的安全偏移范围
+            const range = getSafeWindowOffset(noButton);
             if (!range) return;
             
-            // 随机策略：极大概率飞向远角，增加刺激感
-            // 产生激烈偏移: 偏向某个极端方向
+            // 随机选择远角方向: 0左上,1右上,2左下,3右下
+            const corner = Math.floor(Math.random() * 4);
             let targetX, targetY;
-            
-            // 模式1: 直接飞向一个随机极端角落 (大幅偏移)
-            const corner = Math.floor(Math.random() * 4); // 0左上 1右上 2左下 3右下
             switch(corner) {
                 case 0: // 左上
                     targetX = range.minX;
@@ -514,121 +548,115 @@
                     targetX = (Math.random() > 0.5 ? range.maxX : range.minX);
                     targetY = (Math.random() > 0.5 ? range.maxY : range.minY);
             }
-            // 额外增加小随机性，让每次飞的位置不同但依然很远
-            targetX += (Math.random() - 0.5) * 25;
-            targetY += (Math.random() - 0.5) * 25;
-            // 钳位确保不超出范围
+            // 增加微小随机抖动，使每次飞的位置略有不同
+            targetX += (Math.random() - 0.5) * 15;
+            targetY += (Math.random() - 0.5) * 15;
+            // 严格限制在边界内
             targetX = Math.min(range.maxX, Math.max(range.minX, targetX));
             targetY = Math.min(range.maxY, Math.max(range.minY, targetY));
             
-            // 应用弹射位移
+            // 应用弹射位移 (加一点旋转小趣味，但不影响坐标)
+            noButton.style.transition = 'transform 0.22s cubic-bezier(0.2, 1.3, 0.4, 1)';
             noButton.style.transform = `translate(${targetX}px, ${targetY}px)`;
             
-            // 附加趣味特效：让按钮短暂旋转+缩放模拟受击飞走
-            noButton.style.transition = 'transform 0.22s cubic-bezier(0.2, 1.5, 0.5, 1)';
-            noButton.style.transform += ` rotate(${(Math.random() - 0.5) * 25}deg) scale(0.95)`;
-            setTimeout(() => {
+            // 可选: 极短时间内加一点点旋转效果，更生动，之后恢复
+            noButton.style.transform += ` rotate(${(Math.random() - 0.5) * 12}deg)`;
+            // 设定定时器移除旋转效果，但保留位移 (避免transform字符串冲突)
+            escapeTimer = setTimeout(() => {
                 if (noButton && !isConfirmed) {
-                    // 恢复旋转并保持位移（位移不变，但还原旋转和缩放，更加自然）
-                    noButton.style.transform = `translate(${targetX}px, ${targetY}px)`;
-                    noButton.style.transition = 'transform 0.2s cubic-bezier(0.34, 1.2, 0.64, 1)';
+                    // 只清除旋转部分，保留位移，避免位移重置消失
+                    const currentTranslate = noButton.style.transform;
+                    // 提取 translate 数值 (正则)
+                    const match = currentTranslate.match(/translate\(([^,]+),([^)]+)\)/);
+                    if (match) {
+                        const x = match[1];
+                        const y = match[2];
+                        noButton.style.transform = `translate(${x}, ${y})`;
+                    }
+                    noButton.style.transition = 'transform 0.2s cubic-bezier(0.2, 0.9, 0.4, 1)';
                 }
-            }, 220);
+                escapeTimer = null;
+            }, 200);
             
-            // 更换文字增加趣味感
-            const flyTexts = ['💨 飞走啦', '⚡ 抓不住', '✨ 反弹~', '🌀 咻~', '🎈 飘远了', '💥 碰不到', '🌸 逃走咯'];
-            if (!isConfirmed && Math.random() > 0.3) {
-                const randomMsg = flyTexts[Math.floor(Math.random() * flyTexts.length)];
+            // 改变按钮文字，增加调皮感
+            const flyWords = ['💨 飞走啦', '⚡ 抓不住', '🌀 太远咯', '🎈 点不到', '✨ 反弹~', '💥 咻~', '🌸 逃走啦'];
+            if (!isConfirmed && Math.random() > 0.4) {
                 const originalText = noButton.innerText;
-                noButton.innerText = randomMsg;
+                const newWord = flyWords[Math.floor(Math.random() * flyWords.length)];
+                noButton.innerText = newWord;
                 setTimeout(() => {
                     if (noButton && !isConfirmed) noButton.innerText = '🙅 不要嘛 🙅';
-                }, 650);
+                }, 700);
             }
             
-            // 额外产生粒子反馈（小爱心溅射）
-            createImpactEffect();
-        }
-        
-        // 产生触碰溅射爱心效果（增强视觉反馈）
-        function createImpactEffect() {
-            if (!noButton) return;
+            // 溅射爱心粒子 (增强视觉)
             const rect = noButton.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
             for (let i = 0; i < 12; i++) {
-                const heartSpark = document.createElement('div');
-                heartSpark.innerText = ['❤️','💕','💓','💗'][Math.floor(Math.random()*4)];
-                heartSpark.style.position = 'fixed';
-                heartSpark.style.left = centerX + (Math.random() - 0.5) * 30 + 'px';
-                heartSpark.style.top = centerY + (Math.random() - 0.5) * 30 + 'px';
-                heartSpark.style.fontSize = '18px';
-                heartSpark.style.pointerEvents = 'none';
-                heartSpark.style.zIndex = '9999';
-                heartSpark.style.opacity = '0.9';
-                heartSpark.style.transition = 'all 0.5s ease-out';
-                document.body.appendChild(heartSpark);
-                const dx = (Math.random() - 0.5) * 80;
-                const dy = (Math.random() - 0.5) * 80 - 30;
+                const spark = document.createElement('div');
+                spark.innerText = ['❤️','💕','💖','💗'][Math.floor(Math.random()*4)];
+                spark.style.position = 'fixed';
+                spark.style.left = rect.left + rect.width/2 + (Math.random() - 0.5)*40 + 'px';
+                spark.style.top = rect.top + rect.height/2 + (Math.random() - 0.5)*40 + 'px';
+                spark.style.fontSize = '18px';
+                spark.style.pointerEvents = 'none';
+                spark.style.zIndex = '9999';
+                spark.style.opacity = '0.9';
+                spark.style.transition = 'all 0.5s ease-out';
+                document.body.appendChild(spark);
+                const dx = (Math.random() - 0.5) * 100;
+                const dy = (Math.random() - 0.5) * 90 - 40;
                 setTimeout(() => {
-                    heartSpark.style.transform = `translate(${dx}px, ${dy}px) scale(0.5)`;
-                    heartSpark.style.opacity = '0';
+                    spark.style.transform = `translate(${dx}px, ${dy}px) scale(0.6)`;
+                    spark.style.opacity = '0';
                 }, 10);
-                setTimeout(() => heartSpark.remove(), 600);
+                setTimeout(() => spark.remove(), 600);
             }
-            // 轻度震动反馈 (手机)
-            if (navigator.vibrate) navigator.vibrate(30);
+            
+            // 手机轻微震动
+            if (navigator.vibrate) navigator.vibrate(20);
+            
+            // 触发整体协调特效
+            triggerGlobalReaction();
         }
         
-        // 飘浮小提示（适合触摸反馈）
-        function showFloatingTip(msg, bgColor = '#ff99bb') {
+        // 弹出小提示
+        function showTip(msg, bg = '#ff88aa') {
             const tip = document.createElement('div');
             tip.innerText = msg;
             tip.style.position = 'fixed';
             tip.style.bottom = '20%';
             tip.style.left = '50%';
             tip.style.transform = 'translateX(-50%)';
-            tip.style.backgroundColor = bgColor;
+            tip.style.backgroundColor = bg;
             tip.style.color = '#fff';
-            tip.style.padding = '10px 20px';
-            tip.style.borderRadius = '60px';
+            tip.style.padding = '8px 20px';
+            tip.style.borderRadius = '40px';
             tip.style.fontWeight = 'bold';
-            tip.style.fontSize = '1rem';
+            tip.style.fontSize = '0.95rem';
             tip.style.zIndex = '999';
-            tip.style.boxShadow = '0 6px 14px rgba(0,0,0,0.2)';
-            tip.style.backdropFilter = 'blur(8px)';
-            tip.style.border = '1px solid white';
+            tip.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
             tip.style.whiteSpace = 'nowrap';
-            tip.style.fontFamily = 'inherit';
             document.body.appendChild(tip);
             setTimeout(() => {
                 tip.style.opacity = '0';
-                tip.style.transition = 'opacity 0.4s';
-                setTimeout(() => tip.remove(), 500);
-            }, 1800);
+                tip.style.transition = 'opacity 0.3s';
+                setTimeout(() => tip.remove(), 400);
+            }, 1600);
         }
         
-        // 触发烟花 / 彩带 (表白成功)
+        // 烟花彩带 (表白成功)
         function launchConfetti() {
-            canvasConfetti({ particleCount: 180, spread: 85, origin: { y: 0.6 }, colors: ['#ff5e7e', '#ff3366', '#ff99bb', '#ffccdd'] });
-            setTimeout(() => {
-                canvasConfetti({ particleCount: 220, spread: 130, origin: { y: 0.5, x: 0.2 }, startVelocity: 22, colors: ['#ff6b8b', '#ffb3c6'] });
-                canvasConfetti({ particleCount: 220, spread: 130, origin: { y: 0.5, x: 0.8 }, startVelocity: 22 });
-            }, 150);
-            setTimeout(() => {
-                canvasConfetti({ particleCount: 450, spread: 110, origin: { y: 0.7 }, startVelocity: 18, decay: 0.9 });
-                canvasConfetti({ particleCount: 100, spread: 360, origin: { y: 0.4, x: 0.5 }, startVelocity: 28, colors: ['#ff416c', '#ffd966'] });
-            }, 400);
-            setTimeout(() => {
-                canvasConfetti({ particleCount: 350, spread: 70, origin: { y: 0.5, x: 0.5 }, startVelocity: 14, angle: 90, colors: ['#ff4d6d', '#ffb3ba'] });
-            }, 700);
+            canvasConfetti({ particleCount: 180, spread: 85, origin: { y: 0.6 }, colors: ['#ff5e7e', '#ff3366', '#ff99bb'] });
+            setTimeout(() => canvasConfetti({ particleCount: 220, spread: 120, origin: { y: 0.5, x: 0.2 }, startVelocity: 22, colors: ['#ff6b8b', '#ffb3c6'] }), 150);
+            setTimeout(() => canvasConfetti({ particleCount: 220, spread: 120, origin: { y: 0.5, x: 0.8 }, startVelocity: 22 }), 150);
+            setTimeout(() => canvasConfetti({ particleCount: 400, spread: 100, origin: { y: 0.7 }, startVelocity: 18, decay: 0.9 }), 400);
+            setTimeout(() => canvasConfetti({ particleCount: 300, spread: 70, origin: { y: 0.5, x: 0.5 }, startVelocity: 14, colors: ['#ff4d6d', '#ffd966'] }), 600);
         }
         
-        // 表白成功界面
-        function showSuccessOverlay() {
+        // 成功界面
+        function showSuccess() {
             if (isConfirmed) return;
             isConfirmed = true;
-            
             launchConfetti();
             const overlay = document.createElement('div');
             overlay.className = 'success-overlay';
@@ -663,102 +691,96 @@
                         finalMsg.innerHTML = '✨ 愿往后余生，冷暖有相知 ✨';
                         document.querySelector('.buttons-area')?.after(finalMsg);
                     }
+                    clearInterval(bgInterval);
                 });
             }
-            for (let i = 0; i < 12; i++) {
+            for (let i=0;i<12;i++) {
                 setTimeout(() => {
-                    if (document.body.contains(overlay)) {
-                        canvasConfetti({ particleCount: 70, spread: 65, origin: { y: 0.8, x: Math.random() }, colors: ['#ff98aa', '#ff556c'] });
-                    }
-                }, i * 280);
+                    if (document.body.contains(overlay)) canvasConfetti({ particleCount: 50, spread: 55, origin: { y: 0.8, x: Math.random() }, colors: ['#ff98aa','#ff556c'] });
+                }, i*250);
             }
         }
         
+        // YES 按钮事件
         function onYes() {
             if (isConfirmed) return;
-            const card = document.querySelector('.card');
-            card.style.transform = 'scale(1.02)';
-            setTimeout(() => { if(card) card.style.transform = ''; }, 200);
-            showFloatingTip('✨ 我也超喜欢你！ 我们在一起吧 ✨', '#ff6680');
-            showSuccessOverlay();
+            mainCard.style.transform = 'scale(1.02)';
+            setTimeout(() => { if(mainCard) mainCard.style.transform = ''; }, 200);
+            showTip('✨ 我也超喜欢你！ 我们在一起吧 ✨', '#ff6680');
+            showSuccess();
         }
         
-        // 绑定YES事件
         yesButton.addEventListener('click', onYes);
-        yesButton.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            onYes();
-        });
+        yesButton.addEventListener('touchstart', (e) => { e.preventDefault(); onYes(); });
         
-        // 给NO按钮绑定极端逃跑事件 (鼠标/触摸)
-        function bindExtremeEscape() {
+        // NO 按钮绑定强效飞走事件 (鼠标/触摸)
+        function bindNoEscape() {
             if (!noButton) return;
-            // 鼠标进入也是触发逃跑（应激反应）
-            noButton.addEventListener('mouseenter', function() {
-                if (!isConfirmed) makeNoRunAwayExtreme();
-            });
-            // 移动端触摸逃逸
-            noButton.addEventListener('touchstart', function(e) {
+            // 鼠标进入直接飞走
+            noButton.addEventListener('mouseenter', () => { if (!isConfirmed) makeNoFlyFar(); });
+            // 手机触摸同样飞走
+            noButton.addEventListener('touchstart', (e) => {
                 if (!isConfirmed) {
                     e.preventDefault();
-                    makeNoRunAwayExtreme();
+                    makeNoFlyFar();
                 }
             });
-            // 点击事件（即使点中了也要弹飞并提示）
-            noButton.addEventListener('click', function(e) {
+            // 点击事件: 除了飞走还提示
+            noButton.addEventListener('click', (e) => {
                 if (isConfirmed) return;
                 e.preventDefault();
                 e.stopPropagation();
-                showFloatingTip('⚡ 咻~ 飞走咯！点 “我愿意” 表白吧 ⚡', '#ff88aa');
-                makeNoRunAwayExtreme();
-                // 额外弹飞动画加强
-                noButton.style.transition = 'transform 0.18s cubic-bezier(0.2, 1.8, 0.4, 1)';
-                setTimeout(() => {
-                    if (noButton && !isConfirmed) noButton.style.transition = 'transform 0.2s cubic-bezier(0.34, 1.2, 0.64, 1)';
-                }, 250);
+                showTip('💢 点不着了吧～ 快按“我愿意”呀！', '#ff99aa');
+                makeNoFlyFar();
             });
         }
+        bindNoEscape();
         
-        bindExtremeEscape();
-        
-        // 窗口尺寸变化重置逃跑边界 (防止按钮飞越界之后无法复位)
+        // 窗口大小改变时，重置No按钮位置到原始点（避免飞出界后无法恢复），但保留趣味，随机轻微调整
         window.addEventListener('resize', () => {
             if (!isConfirmed && noButton) {
-                // 避免飞出太离谱，重新计算范围内合理偏移但保持趣味性，可重置原位移再随机轻微逃逸
-                noButton.style.transform = 'translate(0px, 0px)';
+                if (escapeTimer) clearTimeout(escapeTimer);
+                noButton.style.transform = '';
+                // 重置后略微恶作剧一下，增加活泼感（但不会消失）
                 setTimeout(() => {
-                    if (noButton && !isConfirmed) {
-                        // 尺寸变化后，给它一个微小挑衅，但不用飞太远，避免一加载就飞走
-                        if (Math.random() > 0.6) makeNoRunAwayExtreme();
+                    if (noButton && !isConfirmed && Math.random() > 0.5) {
+                        const smallRange = getSafeWindowOffset(noButton);
+                        if (smallRange) {
+                            let randX = (Math.random() - 0.5) * 40;
+                            let randY = (Math.random() - 0.5) * 30;
+                            randX = Math.min(smallRange.maxX, Math.max(smallRange.minX, randX));
+                            randY = Math.min(smallRange.maxY, Math.max(smallRange.minY, randY));
+                            noButton.style.transform = `translate(${randX}px, ${randY}px)`;
+                        }
                     }
-                }, 50);
+                }, 20);
             }
         });
         
-        // 小爱心跟随特效（鼠标/手指滑过）
+        // 精致的小爱心跟随鼠标/触摸特效
         document.body.addEventListener('mousemove', (e) => {
             if (isConfirmed) return;
-            if (Math.random() > 0.94) {
-                const loveSpan = document.createElement('div');
-                loveSpan.innerText = '❤️';
-                loveSpan.style.position = 'fixed';
-                loveSpan.style.left = e.pageX - 10 + 'px';
-                loveSpan.style.top = e.pageY - 10 + 'px';
-                loveSpan.style.fontSize = '18px';
-                loveSpan.style.pointerEvents = 'none';
-                loveSpan.style.zIndex = '9999';
-                loveSpan.style.opacity = '0.8';
-                loveSpan.style.transition = 'all 0.6s ease';
-                document.body.appendChild(loveSpan);
+            if (Math.random() > 0.96) {
+                const love = document.createElement('div');
+                love.innerText = '❤️';
+                love.style.position = 'fixed';
+                love.style.left = e.pageX - 10 + 'px';
+                love.style.top = e.pageY - 10 + 'px';
+                love.style.fontSize = '18px';
+                love.style.pointerEvents = 'none';
+                love.style.zIndex = '9999';
+                love.style.opacity = '0.8';
+                love.style.transition = 'all 0.5s ease';
+                document.body.appendChild(love);
                 setTimeout(() => {
-                    loveSpan.style.opacity = '0';
-                    loveSpan.style.transform = 'translateY(-20px) scale(0.5)';
-                    setTimeout(() => loveSpan.remove(), 700);
-                }, 50);
+                    love.style.opacity = '0';
+                    love.style.transform = 'translateY(-20px) scale(0.5)';
+                    setTimeout(() => love.remove(), 500);
+                }, 40);
             }
         });
         
-        console.log("%c💥 超级弹跳版520告白 —— 点“不要嘛”会飞超远！快来牵手吧 💥", "color: #ff3366; font-size: 14px; font-weight: bold;");
+        console.log("%c✨ 超级弹射版520表白 ✨ 点“不要嘛”它会飞到天涯海角，整体画面一起心跳！", "color: #ff3366; font-size: 14px; font-weight: bold;");
     })();
 </script>
 </body>
