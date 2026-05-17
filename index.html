@@ -8,12 +8,7 @@
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
 
 <style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    user-select:none;
-}
+*{ margin:0; padding:0; box-sizing:border-box; user-select:none; }
 
 body{
     min-height:100vh;
@@ -22,429 +17,302 @@ body{
     align-items:center;
     justify-content:center;
     padding:20px;
-    font-family:
-        "Segoe UI",
-        "PingFang SC",
-        system-ui,
-        sans-serif;
-
-    background:
-        linear-gradient(
-            135deg,
-            #ffccd5 0%,
-            #ff8fab 45%,
-            #fb6f92 100%
-        );
-
+    font-family:"Segoe UI","PingFang SC",system-ui,sans-serif;
+    background:linear-gradient(135deg,#ffccd5 0%,#ff8fab 45%,#fb6f92 100%);
     position:relative;
+    transition:background 2s ease;
 }
 
-/* 背景爱心 */
+body.scene-active{
+    background:linear-gradient(135deg,#1a0a20 0%,#3d1a3d 30%,#5c2040 60%,#7a2a45 100%);
+}
+
+/* ======= 背景漂浮爱心 ======= */
 
 .floating-hearts{
-    position:fixed;
-    inset:0;
-    overflow:hidden;
-    pointer-events:none;
-    z-index:0;
+    position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0;
 }
 
 .heart-bg{
-    position:absolute;
-    color:white;
-    opacity:.5;
+    position:absolute;color:white;opacity:.5;
     animation:floatHeart linear forwards;
 }
 
 @keyframes floatHeart{
-    0%{
-        transform:
-            translateY(110vh)
-            scale(.6)
-            rotate(0deg);
-        opacity:0;
-    }
-    20%{
-        opacity:.8;
-    }
-    100%{
-        transform:
-            translateY(-20vh)
-            scale(1.2)
-            rotate(360deg);
-        opacity:0;
-    }
+    0%{ transform:translateY(110vh) scale(.6) rotate(0deg);opacity:0; }
+    20%{ opacity:.8; }
+    100%{ transform:translateY(-20vh) scale(1.2) rotate(360deg);opacity:0; }
 }
 
-/* 主卡片 */
+/* ======= 场景背景层 ======= */
+
+.scene-bg{
+    position:fixed;inset:0;z-index:4;pointer-events:none;
+    opacity:0;transition:opacity 1.5s ease;
+}
+
+.scene-bg.active{ opacity:1; }
+
+.scene-stars{
+    position:absolute;inset:0;
+    animation:twinkle 2.5s ease-in-out infinite;
+}
+
+.scene-stars:nth-child(2){
+    animation-delay:1.2s;animation-duration:3s;
+}
+
+@keyframes twinkle{
+    0%,100%{ opacity:.4; }
+    50%{ opacity:1; }
+}
+
+/* 花瓣 */
+
+.petal{
+    position:fixed;pointer-events:none;z-index:12;
+    animation:petalFall var(--dur) linear infinite;
+    animation-delay:var(--delay);
+    opacity:0;
+}
+
+@keyframes petalFall{
+    0%{ transform:translateY(-8vh) translateX(0) rotate(0deg);opacity:0; }
+    8%{ opacity:.85; }
+    85%{ opacity:.6; }
+    100%{ transform:translateY(108vh) translateX(var(--sway)) rotate(var(--spin));opacity:0; }
+}
+
+/* 卡牌周围微光粒子 */
+
+.sparkle{
+    position:fixed;pointer-events:none;z-index:13;
+    width:3px;height:3px;border-radius:50%;
+    background:white;
+    box-shadow:0 0 8px 3px rgba(255,220,180,.9);
+    animation:sparkleOrbit var(--sdur) ease-in-out infinite;
+    animation-delay:var(--sdelay);
+}
+
+@keyframes sparkleOrbit{
+    0%,100%{ transform:translate(0,0) scale(1);opacity:.3; }
+    25%{ transform:translate(var(--sx1),var(--sy1)) scale(1.8);opacity:1; }
+    50%{ transform:translate(var(--sx2),var(--sy2)) scale(.6);opacity:.5; }
+    75%{ transform:translate(var(--sx3),var(--sy3)) scale(1.5);opacity:.9; }
+}
+
+/* ======= 主卡片 ======= */
 
 .card{
-    position:relative;
-    z-index:10;
-
-    width:100%;
-    max-width:620px;
-
+    position:relative;z-index:10;
+    width:100%;max-width:620px;
     padding:40px 28px;
-
     border-radius:48px;
-
-    background:
-        rgba(255,255,255,.82);
-
+    background:rgba(255,255,255,.82);
     backdrop-filter:blur(12px);
-
-    box-shadow:
-        0 20px 50px rgba(0,0,0,.15),
-        0 0 0 6px rgba(255,255,255,.25);
-
+    box-shadow:0 20px 50px rgba(0,0,0,.15),0 0 0 6px rgba(255,255,255,.25);
     text-align:center;
-
     animation:cardFloat 3s ease-in-out infinite;
+    transition:opacity .5s ease,box-shadow 1s ease,background .8s ease;
+}
+
+.card.fading{ opacity:0;pointer-events:none; }
+
+.card.success{
+    animation:successFloat 4s ease-in-out infinite;
+    box-shadow:
+        0 0 40px rgba(255,180,100,.5),
+        0 0 80px rgba(255,140,160,.35),
+        0 0 120px rgba(255,200,150,.25),
+        0 20px 50px rgba(0,0,0,.2);
+    background:rgba(255,255,255,.92);
 }
 
 @keyframes cardFloat{
-    0%,100%{
-        transform:translateY(0px);
-    }
-    50%{
-        transform:translateY(-6px);
-    }
+    0%,100%{ transform:translateY(0px); }
+    50%{ transform:translateY(-6px); }
 }
 
-/* 标题 */
+@keyframes successFloat{
+    0%,100%{ transform:translateY(0px) scale(1); }
+    30%{ transform:translateY(-8px) scale(1.015); }
+    60%{ transform:translateY(-3px) scale(1.005); }
+}
+
+/* ======= 标题 ======= */
 
 .big-heart{
     font-size:72px;
     animation:heartbeat 1.2s infinite;
     filter:drop-shadow(0 0 12px rgba(255,80,120,.4));
+    transition:opacity .4s ease,transform .4s ease;
 }
 
 @keyframes heartbeat{
-    0%,100%{
-        transform:scale(1);
-    }
-    25%{
-        transform:scale(1.12);
-    }
-    45%{
-        transform:scale(1.22);
-    }
-    60%{
-        transform:scale(1.1);
-    }
+    0%,100%{ transform:scale(1); }
+    25%{ transform:scale(1.12); }
+    45%{ transform:scale(1.22); }
+    60%{ transform:scale(1.1); }
 }
 
 .glow-520{
     margin-top:8px;
-
-    font-size:74px;
-    font-weight:900;
-
-    letter-spacing:8px;
-
-    background:
-        linear-gradient(
-            135deg,
-            #ff4d6d,
-            #ff758f
-        );
-
-    -webkit-background-clip:text;
-    color:transparent;
-
-    text-shadow:
-        0 0 10px rgba(255,100,140,.25);
+    font-size:74px;font-weight:900;letter-spacing:8px;
+    background:linear-gradient(135deg,#ff4d6d,#ff758f);
+    -webkit-background-clip:text;color:transparent;
+    text-shadow:0 0 10px rgba(255,100,140,.25);
+    transition:opacity .4s ease;
 }
 
 .sub-message{
-    margin-top:8px;
-
-    display:inline-block;
-
-    padding:6px 18px;
-
-    border-radius:999px;
-
-    background:
-        rgba(255,240,244,.8);
-
-    color:#c9184a;
-
-    font-weight:700;
+    margin-top:8px;display:inline-block;
+    padding:6px 18px;border-radius:999px;
+    background:rgba(255,240,244,.8);
+    color:#c9184a;font-weight:700;
+    transition:opacity .4s ease;
 }
 
-/* 内容 */
+/* ======= 内容 ======= */
 
 .confession{
-    margin-top:30px;
+    margin-top:30px;color:#5b2d42;line-height:1.8;
+    transition:opacity .4s ease;
+}
+.confession h2{ font-size:2rem;margin-bottom:12px; }
+.confession p{ font-size:1.12rem; }
 
-    color:#5b2d42;
+/* ======= 成功内容 ======= */
 
-    line-height:1.8;
+.success-content{ display:none; }
+.card.success .success-content{ display:block; }
+.card.success .initial-content{ display:none; }
+
+.success-heart{
+    font-size:72px;
+    animation:heartbeat 1s infinite;
+    filter:drop-shadow(0 0 16px rgba(255,150,80,.6));
+    margin-bottom:8px;
 }
 
-.confession h2{
-    font-size:2rem;
-    margin-bottom:12px;
+.success-title{
+    font-size:2.4rem;font-weight:900;
+    background:linear-gradient(135deg,#ff4d88,#ff8c5a,#ff4d88);
+    background-size:200% 200%;
+    -webkit-background-clip:text;color:transparent;
+    animation:shimmer 3s ease-in-out infinite;
+    margin-bottom:16px;
 }
 
-.confession p{
-    font-size:1.12rem;
+@keyframes shimmer{
+    0%,100%{ background-position:0% 50%; }
+    50%{ background-position:100% 50%; }
 }
 
-/* 按钮 */
+.success-text{
+    color:#7a3751;font-size:1.2rem;line-height:2;
+}
+
+.success-close-btn{
+    margin-top:28px;
+    border:none;
+    background:linear-gradient(135deg,#ff4d88,#ff8c5a);
+    color:white;
+    padding:14px 32px;
+    border-radius:999px;
+    font-size:1.1rem;font-weight:700;
+    cursor:pointer;
+    box-shadow:0 8px 25px rgba(255,77,136,.35);
+    transition:transform .25s ease,box-shadow .25s ease;
+}
+
+.success-close-btn:hover{ transform:scale(1.06); }
+.success-close-btn:active{ transform:scale(.96); }
+
+/* ======= 按钮 ======= */
 
 .buttons{
     margin-top:36px;
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:28px;
-
+    display:flex;align-items:center;justify-content:center;gap:28px;
     min-height:80px;
+    transition:opacity .4s ease;
 }
 
 .btn{
-    border:none;
-    cursor:pointer;
-
-    padding:14px 34px;
-
-    border-radius:999px;
-
-    font-size:1.25rem;
-    font-weight:700;
-
-    transition:
-        transform .25s ease,
-        box-shadow .25s ease;
+    border:none;cursor:pointer;
+    padding:14px 34px;border-radius:999px;
+    font-size:1.25rem;font-weight:700;
+    transition:transform .25s ease,box-shadow .25s ease;
 }
 
-.btn:hover{
-    transform:scale(1.05);
-}
+.btn:hover{ transform:scale(1.05); }
 
 .btn-yes{
-    background:
-        linear-gradient(
-            135deg,
-            #ff4d88,
-            #ff758f
-        );
-
+    background:linear-gradient(135deg,#ff4d88,#ff758f);
     color:white;
-
-    box-shadow:
-        0 10px 25px rgba(255,77,136,.35);
+    box-shadow:0 10px 25px rgba(255,77,136,.35);
+    transition:transform .25s ease,box-shadow .25s ease,opacity .4s ease;
 }
+
+.btn-yes:active{ transform:scale(.95); }
 
 .btn-no{
-    background:#f3d7df;
-    color:#5c3748;
-
-    /* 初始不加 fixed，等 JS 在 load 时捕获位置后再设置 */
-    position:relative;
-
+    background:#f3d7df;color:#5c3748;
+    position:relative; /* 初始在 flex 流中，JS 抓取位置后再 fixed */
     z-index:50;
-
     transition:
-        left .22s cubic-bezier(.34,1.56,.64,1),
-        top .22s cubic-bezier(.34,1.56,.64,1),
-        transform .15s ease;
+        left .2s cubic-bezier(.34,1.56,.64,1),
+        top .2s cubic-bezier(.34,1.56,.64,1),
+        transform .12s ease,
+        opacity .4s ease;
 }
 
-.btn-no.fixed{
-    position:fixed;
-}
-
-/* 拖尾小爱心 */
+/* ======= 拖尾爱心 ======= */
 
 .trail-heart{
-    position:fixed;
-    pointer-events:none;
-    z-index:49;
-    font-size:20px;
-    animation:trailFade .6s ease-out forwards;
+    position:fixed;pointer-events:none;z-index:49;
+    animation:trailFade .65s ease-out forwards;
 }
 
 @keyframes trailFade{
-    0%{
-        opacity:1;
-        transform:scale(1) translateY(0);
-    }
-    100%{
-        opacity:0;
-        transform:scale(.3) translateY(-30px);
-    }
+    0%{ opacity:1;transform:scale(1.1) translateY(0); }
+    100%{ opacity:0;transform:scale(.25) translateY(-35px); }
 }
 
-/* 冲击波 */
+/* ======= 冲击波 ======= */
 
 .shockwave{
-    position:fixed;
-    pointer-events:none;
-    z-index:9998;
+    position:fixed;pointer-events:none;z-index:9998;
     border-radius:50%;
     border:3px solid rgba(255,77,136,.6);
-    animation:shockwaveExpand 1s ease-out forwards;
+    animation:shockwaveExpand 1.2s ease-out forwards;
 }
 
 @keyframes shockwaveExpand{
-    0%{
-        width:20px;
-        height:20px;
-        opacity:1;
-    }
-    100%{
-        width:800px;
-        height:800px;
-        opacity:0;
-        margin-left:-400px;
-        margin-top:-400px;
-    }
+    0%{ width:10px;height:10px;opacity:1; }
+    100%{ width:900px;height:900px;opacity:0; }
 }
 
-/* 成功层 */
+/* ======= 爱心爆炸粒子 ======= */
 
-.success-overlay{
-    position:fixed;
-    inset:0;
-
-    z-index:9999;
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    background:
-        rgba(255,255,255,.18);
-
-    backdrop-filter:blur(18px);
-
-    animation:fadeIn .4s ease;
+.heart-particle{
+    position:fixed;pointer-events:none;z-index:10000;
+    animation:heartBurst var(--bdur) ease-out forwards;
 }
 
-@keyframes fadeIn{
-    from{ opacity:0; }
-    to{ opacity:1; }
+@keyframes heartBurst{
+    0%{ opacity:1;transform:translate(0,0) scale(1.2) rotate(0deg); }
+    100%{ opacity:0;transform:translate(var(--tx),var(--ty)) scale(.3) rotate(var(--tr)); }
 }
 
-.success-card{
-    width:min(90%,500px);
-
-    padding:42px 28px;
-
-    border-radius:42px;
-
-    background:
-        rgba(255,255,255,.9);
-
-    text-align:center;
-
-    box-shadow:
-        0 25px 60px rgba(0,0,0,.18);
-
-    animation:pop .45s ease;
-}
-
-@keyframes pop{
-    0%{
-        transform:scale(.8);
-        opacity:0;
-    }
-    100%{
-        transform:scale(1);
-        opacity:1;
-    }
-}
-
-.success-card h1{
-    color:#ff4d88;
-    font-size:2.4rem;
-    margin-bottom:18px;
-}
-
-.success-card p{
-    color:#7a3751;
-    font-size:1.2rem;
-    line-height:1.8;
-}
-
-.final-heart{
-    font-size:64px;
-    margin-bottom:12px;
-    animation:heartbeat 1s infinite;
-}
-
-.close-btn{
-    margin-top:26px;
-
-    border:none;
-
-    background:
-        linear-gradient(
-            135deg,
-            #ff4d88,
-            #ff758f
-        );
-
-    color:white;
-
-    padding:12px 28px;
-
-    border-radius:999px;
-
-    font-size:1rem;
-    font-weight:700;
-
-    cursor:pointer;
-}
-
-/* 终极爱心爆炸粒子 */
-
-.final-heart-particle{
-    position:fixed;
-    pointer-events:none;
-    z-index:10000;
-    animation:finalHeartBurst 3s ease-out forwards;
-}
-
-@keyframes finalHeartBurst{
-    0%{
-        opacity:1;
-        transform:translate(0,0) scale(1) rotate(0deg);
-    }
-    100%{
-        opacity:0;
-        transform:translate(var(--tx),var(--ty)) scale(.4) rotate(var(--tr));
-    }
-}
+/* ======= 响应式 ======= */
 
 @media(max-width:600px){
-
-    .card{
-        padding:32px 20px;
-        border-radius:36px;
-    }
-
-    .glow-520{
-        font-size:54px;
-    }
-
-    .big-heart{
-        font-size:60px;
-    }
-
-    .confession h2{
-        font-size:1.5rem;
-    }
-
-    .btn{
-        font-size:1rem;
-        padding:12px 24px;
-    }
+    .card{ padding:32px 20px;border-radius:36px; }
+    .glow-520{ font-size:54px; }
+    .big-heart{ font-size:60px; }
+    .confession h2{ font-size:1.5rem; }
+    .btn{ font-size:1rem;padding:12px 24px; }
+    .success-title{ font-size:1.8rem; }
 }
 </style>
 </head>
@@ -453,493 +321,499 @@ body{
 
 <div class="floating-hearts" id="floatingHearts"></div>
 
+<!-- 场景背景层（YES后渐显） -->
+<div class="scene-bg" id="sceneBg">
+    <div class="scene-stars" id="stars1"></div>
+    <div class="scene-stars" id="stars2"></div>
+</div>
+
+<!-- 主卡片 -->
 <div class="card" id="mainCard">
 
-    <div class="big-heart">💖</div>
-
-    <div class="glow-520">
-        5 2 0
+    <!-- 初始内容 -->
+    <div class="initial-content">
+        <div class="big-heart">💖</div>
+        <div class="glow-520">5 2 0</div>
+        <div class="sub-message">✨ 告白日 ✨</div>
+        <div class="confession">
+            <h2>💌 我喜欢你 💌</h2>
+            <p>
+                从遇见你的那天起，<br>
+                我的世界开始闪闪发光。<br>
+                往后余生，<br>
+                我想一直陪在你身边 ❤️
+            </p>
+        </div>
+        <div class="buttons">
+            <button class="btn btn-yes" id="yesBtn">💖 我愿意 💖</button>
+            <button class="btn btn-no" id="noBtn">🙅 不要嘛 🙅</button>
+        </div>
+        <div class="hint">点"不要嘛"它会害羞逃跑～</div>
     </div>
 
-    <div class="sub-message">
-        ✨ 告白日 ✨
-    </div>
-
-    <div class="confession">
-        <h2>
-            💌 我喜欢你 💌
-        </h2>
-
-        <p>
-            从遇见你的那天起，
-            我的世界开始闪闪发光。<br>
-            往后余生，
-            我想一直陪在你身边 ❤️
+    <!-- 成功内容（初始隐藏） -->
+    <div class="success-content">
+        <div class="success-heart">💖</div>
+        <div class="success-title">我们在一起啦</div>
+        <p class="success-text">
+            ✨ 520 快乐 ✨<br><br>
+            从今天开始，<br>
+            每一个日落与晚风，<br>
+            我都想陪你一起看 ❤️
         </p>
-    </div>
-
-    <div class="buttons">
-        <button
-            class="btn btn-yes"
-            id="yesBtn">
-            💖 我愿意 💖
-        </button>
-
-        <button
-            class="btn btn-no"
-            id="noBtn">
-            🙅 不要嘛 🙅
-        </button>
-    </div>
-
-    <div class="hint">
-        点"不要嘛"它会害羞逃跑～
+        <button class="success-close-btn" id="closeBtn">💕 珍藏此刻 💕</button>
     </div>
 
 </div>
 
 <script>
-
 (() => {
 
-    const floatingHearts =
-        document.getElementById('floatingHearts');
+const floatingHearts = document.getElementById('floatingHearts');
+const yesBtn = document.getElementById('yesBtn');
+const noBtn = document.getElementById('noBtn');
+const mainCard = document.getElementById('mainCard');
+const sceneBg = document.getElementById('sceneBg');
+const closeBtn = document.getElementById('closeBtn');
 
-    const yesBtn =
-        document.getElementById('yesBtn');
+let confirmed = false;
+let noFixed = false;
+let petalsInterval = null;
+let sparklesInterval = null;
 
-    const noBtn =
-        document.getElementById('noBtn');
+/* =======================
+   背景漂浮爱心
+======================= */
 
-    const mainCard =
-        document.getElementById('mainCard');
+const emojis = ['❤️','💖','💕','💗','✨'];
 
-    let confirmed = false;
-    let noFixed = false;
+function createHeart(){
+    const heart = document.createElement('div');
+    heart.className = 'heart-bg';
+    heart.innerHTML = emojis[Math.floor(Math.random()*emojis.length)];
+    heart.style.left = Math.random()*100 + 'vw';
+    heart.style.fontSize = (14 + Math.random()*20) + 'px';
+    heart.style.animationDuration = (6 + Math.random()*6) + 's';
+    floatingHearts.appendChild(heart);
+    setTimeout(() => heart.remove(), 12000);
+}
 
-    /* =======================
-       背景漂浮爱心
-    ======================= */
+for(let i=0;i<25;i++) setTimeout(createHeart, i*200);
+setInterval(createHeart, 1400);
 
-    const emojis = [
-        '❤️',
-        '💖',
-        '💕',
-        '💗',
-        '✨'
-    ];
+/* =======================
+   初始化 NO 按钮位置
+   关键：先禁用过渡，设为 fixed，设坐标，再启用过渡，
+   避免 position:relative → fixed 切换时 left/top 语义变化导致跳动
+======================= */
 
-    function createHeart(){
-        const heart =
-            document.createElement('div');
-        heart.className = 'heart-bg';
-        heart.innerHTML =
-            emojis[
-                Math.floor(
-                    Math.random()*emojis.length
-                )
-            ];
-        heart.style.left =
-            Math.random()*100 + 'vw';
-        heart.style.fontSize =
-            (14 + Math.random()*20) + 'px';
-        heart.style.animationDuration =
-            (6 + Math.random()*6) + 's';
-        floatingHearts.appendChild(heart);
+function initNoPosition(){
+    if(noFixed) return;
+    const rect = noBtn.getBoundingClientRect();
+    noBtn.style.transition = 'none';
+    noBtn.style.position = 'fixed';
+    noBtn.style.left = rect.left + 'px';
+    noBtn.style.top = rect.top + 'px';
+    noBtn.style.width = rect.width + 'px';
+    // 强制回流使上述样式立即生效
+    noBtn.offsetHeight;
+    noBtn.style.transition = '';
+    noFixed = true;
+}
+
+// 尽早初始化：DOMContentLoaded + 双重 rAF 确保布局完成
+if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', () => {
+        requestAnimationFrame(() => requestAnimationFrame(initNoPosition));
+    });
+} else {
+    requestAnimationFrame(() => requestAnimationFrame(initNoPosition));
+}
+
+// resize 时保持在可视区域内
+let resizeDebounce;
+window.addEventListener('resize', () => {
+    clearTimeout(resizeDebounce);
+    resizeDebounce = setTimeout(() => {
+        if(confirmed || !noFixed) return;
+        const bw = noBtn.offsetWidth;
+        const bh = noBtn.offsetHeight;
+        const mx = window.innerWidth - bw - 10;
+        const my = window.innerHeight - bh - 10;
+        let x = parseFloat(noBtn.style.left)||0, y = parseFloat(noBtn.style.top)||0;
+        noBtn.style.left = Math.max(10, Math.min(mx, x)) + 'px';
+        noBtn.style.top = Math.max(10, Math.min(my, y)) + 'px';
+    }, 300);
+});
+
+/* =======================
+   NO 按钮逃跑（炫酷版）
+======================= */
+
+function spawnTrailHeart(x, y){
+    const h = document.createElement('div');
+    h.className = 'trail-heart';
+    h.innerHTML = ['💕','💖','✨','💗','❤️'][Math.floor(Math.random()*5)];
+    h.style.left = x + 'px';
+    h.style.top = y + 'px';
+    h.style.fontSize = (14 + Math.random()*14) + 'px';
+    document.body.appendChild(h);
+    setTimeout(() => h.remove(), 700);
+}
+
+function moveNoBtn(){
+    if(confirmed) return;
+    if(!noFixed) initNoPosition();
+
+    const bw = noBtn.offsetWidth;
+    const bh = noBtn.offsetHeight;
+    const pad = 10;
+    const maxX = window.innerWidth - bw - pad;
+    const maxY = window.innerHeight - bh - pad;
+    const curX = parseFloat(noBtn.style.left)||0;
+    const curY = parseFloat(noBtn.style.top)||0;
+
+    // 随机方向 + 随机距离
+    const angle = Math.random()*Math.PI*2;
+    const dist = 130 + Math.random()*220;
+    let nx = curX + Math.cos(angle)*dist;
+    let ny = curY + Math.sin(angle)*dist;
+
+    // 如果飞出屏幕则反向弹回
+    if(nx<pad||nx>maxX) nx = curX - Math.cos(angle)*dist;
+    if(ny<pad||ny>maxY) ny = curY - Math.sin(angle)*dist;
+
+    nx = Math.max(pad, Math.min(maxX, nx));
+    ny = Math.max(pad, Math.min(maxY, ny));
+
+    // 拖尾爱心（在旧位置）
+    const cx = curX + bw/2, cy = curY + bh/2;
+    for(let i=0;i<5;i++){
+        setTimeout(() => spawnTrailHeart(
+            cx + (Math.random()-.5)*50,
+            cy + (Math.random()-.5)*36
+        ), i*35);
+    }
+
+    const rot = (Math.random()-.5)*55;
+
+    noBtn.style.left = nx + 'px';
+    noBtn.style.top = ny + 'px';
+    noBtn.style.transform = `scale(1.18) rotate(${rot}deg)`;
+
+    setTimeout(() => {
+        if(!confirmed) noBtn.style.transform = 'scale(1) rotate(0deg)';
+    }, 200);
+
+    const texts = ['抓不到~','略略略~','不可以！','跑啦~','点空啦~','嘿嘿~','再试一次~','讨厌~'];
+    if(Math.random()>.35){
+        noBtn.innerText = texts[Math.floor(Math.random()*texts.length)];
         setTimeout(() => {
-            heart.remove();
-        },12000);
+            if(!confirmed) noBtn.innerText = '🙅 不要嘛 🙅';
+        }, 480);
     }
 
-    for(let i=0;i<25;i++){
-        setTimeout(createHeart,i*200);
+    if(navigator.vibrate) navigator.vibrate([8,25,8]);
+}
+
+noBtn.addEventListener('mouseenter', moveNoBtn);
+noBtn.addEventListener('touchstart', e => {
+    e.preventDefault();
+    moveNoBtn();
+}, {passive:false});
+
+/* =======================
+   场景星星（box-shadow 生成）
+======================= */
+
+function generateStarShadows(count){
+    const shadows = [];
+    for(let i=0;i<count;i++){
+        const x = Math.random()*100, y = Math.random()*100;
+        const size = Math.random()*2.5+1;
+        const alpha = Math.random()*.5+.3;
+        shadows.push(`${x}vw ${y}vh 0 ${size}px rgba(255,255,255,${alpha})`);
     }
+    return shadows.join(',');
+}
 
-    setInterval(createHeart,1400);
+/* =======================
+   花瓣
+======================= */
 
-    /* =======================
-       初始化 NO 按钮位置
-       先让它在 flex 流中自然渲染，
-       再用 getBoundingClientRect 捕获精确位置后 fixed
-    ======================= */
+function createPetal(){
+    const p = document.createElement('div');
+    p.className = 'petal';
+    p.innerHTML = ['🌸','💮','💐','🌷','🪷'][Math.floor(Math.random()*5)];
+    p.style.left = Math.random()*100 + 'vw';
+    p.style.top = '-30px';
+    p.style.fontSize = (16 + Math.random()*20) + 'px';
+    p.style.setProperty('--dur', (4 + Math.random()*5) + 's');
+    p.style.setProperty('--delay', Math.random()*3 + 's');
+    p.style.setProperty('--sway', (Math.random()-.5)*180 + 'px');
+    p.style.setProperty('--spin', (Math.random()-.5)*400 + 'deg');
+    document.body.appendChild(p);
 
-    function initNoPosition(){
-        if(noFixed) return;
-        const rect = noBtn.getBoundingClientRect();
-        noBtn.style.left = rect.left + 'px';
-        noBtn.style.top = rect.top + 'px';
-        noBtn.style.width = rect.width + 'px';
-        noBtn.classList.add('fixed');
-        noFixed = true;
+    // 自动清理
+    const dur = parseFloat(p.style.getPropertyValue('--dur')) + parseFloat(p.style.getPropertyValue('--delay'));
+    setTimeout(() => p.remove(), dur*1000 + 1000);
+}
+
+function startPetals(){
+    for(let i=0;i<12;i++) setTimeout(createPetal, i*200);
+    petalsInterval = setInterval(createPetal, 600);
+}
+
+function stopPetals(){
+    if(petalsInterval){ clearInterval(petalsInterval); petalsInterval = null; }
+}
+
+/* =======================
+   卡牌周围微光粒子
+======================= */
+
+function createSparkle(){
+    const s = document.createElement('div');
+    s.className = 'sparkle';
+    const cardRect = mainCard.getBoundingClientRect();
+    const cx = cardRect.left + cardRect.width/2;
+    const cy = cardRect.top + cardRect.height/2;
+    s.style.left = cx + 'px';
+    s.style.top = cy + 'px';
+    s.style.setProperty('--sx1', (Math.random()-.5)*80 + 'px');
+    s.style.setProperty('--sy1', (Math.random()-.5)*80 + 'px');
+    s.style.setProperty('--sx2', (Math.random()-.5)*120 + 'px');
+    s.style.setProperty('--sy2', (Math.random()-.5)*120 + 'px');
+    s.style.setProperty('--sx3', (Math.random()-.5)*60 + 'px');
+    s.style.setProperty('--sy3', (Math.random()-.5)*60 + 'px');
+    s.style.setProperty('--sdur', (1.5 + Math.random()*2) + 's');
+    s.style.setProperty('--sdelay', Math.random()*2 + 's');
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 5000);
+}
+
+function startSparkles(){
+    for(let i=0;i<20;i++) setTimeout(createSparkle, i*100);
+    sparklesInterval = setInterval(createSparkle, 800);
+}
+
+function stopSparkles(){
+    if(sparklesInterval){ clearInterval(sparklesInterval); sparklesInterval = null; }
+}
+
+/* =======================
+   冲击波
+======================= */
+
+function spawnShockwaves(cx, cy){
+    for(let i=0;i<4;i++){
+        setTimeout(() => {
+            const wave = document.createElement('div');
+            wave.className = 'shockwave';
+            wave.style.left = cx + 'px';
+            wave.style.top = cy + 'px';
+            wave.style.width = '10px';
+            wave.style.height = '10px';
+            wave.style.marginLeft = '-5px';
+            wave.style.marginTop = '-5px';
+            wave.style.borderColor = [
+                'rgba(255,77,136,.7)',
+                'rgba(255,150,130,.5)',
+                'rgba(255,200,160,.4)',
+                'rgba(255,220,200,.3)'
+            ][i];
+            wave.style.animationDuration = (1 + i*.35) + 's';
+            wave.style.animationDelay = (i*.12) + 's';
+            document.body.appendChild(wave);
+            setTimeout(() => wave.remove(), 2000);
+        }, i*100);
     }
+}
 
-    window.addEventListener('load', initNoPosition);
+/* =======================
+   爱心爆炸粒子
+======================= */
 
-    // 窗口大小变化时重新校准
-    let resizeDebounce;
-    window.addEventListener('resize', () => {
-        clearTimeout(resizeDebounce);
-        resizeDebounce = setTimeout(() => {
-            if(confirmed || !noFixed) return;
-            // 保持在屏幕内
-            const btnW = noBtn.offsetWidth;
-            const btnH = noBtn.offsetHeight;
-            const maxX = window.innerWidth - btnW - 10;
-            const maxY = window.innerHeight - btnH - 10;
-            let x = parseFloat(noBtn.style.left) || 0;
-            let y = parseFloat(noBtn.style.top) || 0;
-            x = Math.max(10, Math.min(maxX, x));
-            y = Math.max(10, Math.min(maxY, y));
-            noBtn.style.left = x + 'px';
-            noBtn.style.top = y + 'px';
-        }, 300);
+function spawnHeartBurst(cx, cy, count){
+    const hearts = ['💖','💕','💗','❤️','💝','💘','💓','✨'];
+    for(let i=0;i<count;i++){
+        const p = document.createElement('div');
+        p.className = 'heart-particle';
+        p.innerHTML = hearts[Math.floor(Math.random()*hearts.length)];
+        p.style.left = cx + 'px';
+        p.style.top = cy + 'px';
+        p.style.fontSize = (16 + Math.random()*32) + 'px';
+        const angle = Math.random()*Math.PI*2;
+        const dist = 80 + Math.random()*280;
+        p.style.setProperty('--tx', Math.cos(angle)*dist + 'px');
+        p.style.setProperty('--ty', Math.sin(angle)*dist - 60 + 'px');
+        p.style.setProperty('--tr', (Math.random()-.5)*800 + 'deg');
+        p.style.setProperty('--bdur', (2 + Math.random()*2.5) + 's');
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 5000);
+    }
+}
+
+/* =======================
+   YES → 场景转场
+======================= */
+
+function showSuccess(){
+    if(confirmed) return;
+    confirmed = true;
+
+    const cardRect = mainCard.getBoundingClientRect();
+    const ccx = cardRect.left + cardRect.width/2;
+    const ccy = cardRect.top + cardRect.height/2;
+
+    // ---- 闪光 ----
+    const flash = document.createElement('div');
+    flash.style.cssText = 'position:fixed;inset:0;z-index:9997;background:rgba(255,255,255,.55);pointer-events:none;';
+    document.body.appendChild(flash);
+    flash.animate([{opacity:1},{opacity:0}],{duration:500,easing:'ease-out'});
+    setTimeout(() => flash.remove(), 600);
+
+    // ---- 卡牌弹跳 ----
+    mainCard.animate([
+        {transform:'scale(1) translateY(0)'},
+        {transform:'scale(1.07) translateY(-14px)',offset:.2},
+        {transform:'scale(.96) translateY(3px)',offset:.45},
+        {transform:'scale(1.03) translateY(-5px)',offset:.7},
+        {transform:'scale(1) translateY(0)'}
+    ],{duration:900,easing:'cubic-bezier(.22,1,.36,1)'});
+
+    // ---- 冲击波 ----
+    spawnShockwaves(ccx, ccy);
+
+    // ---- 爱心爆炸 ----
+    spawnHeartBurst(ccx, ccy, 35);
+
+    // ---- 第1波彩带：中心爱心爆发 ----
+    canvasConfetti({
+        particleCount:220,spread:110,startVelocity:38,
+        origin:{x:.5,y:.55},scalar:1.3,
+        colors:['#ff4d88','#ff85a1','#ffd1dc','#fff0f5','#ffb3c6','#ff0a54','#ff7096'],
+        shapes:['heart']
     });
 
-    /* =======================
-       NO 按钮逃跑（炫酷版）
-    ======================= */
-
-    function spawnTrailHeart(x, y){
-        const h = document.createElement('div');
-        h.className = 'trail-heart';
-        h.innerHTML = ['💕','💖','✨','💗','❤️'][Math.floor(Math.random()*5)];
-        h.style.left = x + 'px';
-        h.style.top = y + 'px';
-        document.body.appendChild(h);
-        setTimeout(() => h.remove(), 700);
-    }
-
-    function moveNoBtn(){
-        if(confirmed) return;
-
-        if(!noFixed){
-            initNoPosition();
-        }
-
-        const btnW = noBtn.offsetWidth;
-        const btnH = noBtn.offsetHeight;
-        const padding = 10;
-
-        const maxX = window.innerWidth - btnW - padding;
-        const maxY = window.innerHeight - btnH - padding;
-
-        const currentX = parseFloat(noBtn.style.left) || 0;
-        const currentY = parseFloat(noBtn.style.top) || 0;
-
-        const centerX = window.innerWidth / 2;
-        const centerY = window.innerHeight / 2;
-
-        // 更大幅度的逃跑距离
-        const escapeDist = 120 + Math.random() * 200;
-        const randomAngle = Math.random() * Math.PI * 2;
-
-        let newX = currentX + Math.cos(randomAngle) * escapeDist;
-        let newY = currentY + Math.sin(randomAngle) * escapeDist;
-
-        // 如果跑到了屏幕外，弹回反向
-        if(newX < padding || newX > maxX){
-            newX = currentX - Math.cos(randomAngle) * escapeDist;
-        }
-        if(newY < padding || newY > maxY){
-            newY = currentY - Math.sin(randomAngle) * escapeDist;
-        }
-
-        newX = Math.max(padding, Math.min(maxX, newX));
-        newY = Math.max(padding, Math.min(maxY, newY));
-
-        // 生成拖尾爱心（在旧位置）
-        const cx = currentX + btnW/2;
-        const cy = currentY + btnH/2;
-        for(let i=0;i<4;i++){
-            setTimeout(() => {
-                spawnTrailHeart(
-                    cx + (Math.random()-0.5)*40,
-                    cy + (Math.random()-0.5)*30
-                );
-            }, i*40);
-        }
-
-        // 随机旋转角度
-        const rotateDeg = (Math.random() - 0.5) * 50;
-
-        noBtn.style.left = newX + 'px';
-        noBtn.style.top = newY + 'px';
-        noBtn.style.transform = `scale(1.15) rotate(${rotateDeg}deg)`;
-
-        setTimeout(() => {
-            if(!confirmed){
-                noBtn.style.transform = 'scale(1) rotate(0deg)';
-            }
-        }, 220);
-
-        const texts = [
-            '抓不到~',
-            '略略略~',
-            '不可以！',
-            '跑啦~',
-            '点空啦~',
-            '嘿嘿~',
-            '再试一次~'
-        ];
-
-        if(Math.random() > 0.4){
-            noBtn.innerText =
-                texts[Math.floor(Math.random()*texts.length)];
-            setTimeout(() => {
-                if(!confirmed){
-                    noBtn.innerText = '🙅 不要嘛 🙅';
-                }
-            }, 500);
-        }
-
-        if(navigator.vibrate){
-            navigator.vibrate([10, 30, 10]);
-        }
-    }
-
-    noBtn.addEventListener('mouseenter', moveNoBtn);
-    noBtn.addEventListener('touchstart', e => {
-        e.preventDefault();
-        moveNoBtn();
-    }, {passive:false});
-
-    /* =======================
-       YES 特效（震撼升级版）
-    ======================= */
-
-    function launchLoveEffects(){
-
-        // 屏幕闪光
-        const flash = document.createElement('div');
-        flash.style.cssText = `
-            position:fixed;inset:0;z-index:9997;
-            background:rgba(255,255,255,.5);
-            pointer-events:none;
-            animation:flashFade .5s ease-out forwards;
-        `;
-        document.body.appendChild(flash);
-        setTimeout(() => flash.remove(), 600);
-
-        // 注入 flash 动画
-        if(!document.getElementById('flashStyle')){
-            const s = document.createElement('style');
-            s.id = 'flashStyle';
-            s.innerHTML = '@keyframes flashFade{0%{opacity:1}100%{opacity:0}}';
-            document.head.appendChild(s);
-        }
-
-        // 卡牌弹跳
-        mainCard.animate([
-            { transform:'scale(1) translateY(0)' },
-            { transform:'scale(1.06) translateY(-12px)' },
-            { transform:'scale(.97) translateY(2px)' },
-            { transform:'scale(1.02) translateY(-4px)' },
-            { transform:'scale(1) translateY(0)' }
-        ], {
-            duration:800,
-            easing:'cubic-bezier(.22,1,.36,1)'
-        });
-
-        // 冲击波（从卡牌中心扩散）
-        const cardRect = mainCard.getBoundingClientRect();
-        const cx = cardRect.left + cardRect.width/2;
-        const cy = cardRect.top + cardRect.height/2;
-        for(let i=0;i<3;i++){
-            setTimeout(() => {
-                const wave = document.createElement('div');
-                wave.className = 'shockwave';
-                wave.style.left = cx + 'px';
-                wave.style.top = cy + 'px';
-                wave.style.width = '20px';
-                wave.style.height = '20px';
-                wave.style.marginLeft = '-10px';
-                wave.style.marginTop = '-10px';
-                wave.style.borderColor =
-                    ['rgba(255,77,136,.7)','rgba(255,133,161,.5)','rgba(255,200,210,.4)'][i];
-                wave.style.animationDuration = (1 + i*0.3) + 's';
-                wave.style.animationDelay = (i*0.15) + 's';
-                document.body.appendChild(wave);
-                setTimeout(() => wave.remove(), 2000);
-            }, i*120);
-        }
-
-        // 第一波：中心爱心爆发
+    // ---- 第2波：左右夹击 ----
+    setTimeout(() => {
         canvasConfetti({
-            particleCount:200,
-            spread:100,
-            startVelocity:35,
-            origin:{ x:.5, y:.55 },
-            scalar:1.3,
-            colors:[
-                '#ff4d88','#ff85a1','#ffd1dc','#fff0f5',
-                '#ffb3c6','#ff0a54','#ff7096'
-            ],
+            particleCount:130,angle:50,spread:65,
+            origin:{x:0,y:.65},startVelocity:42,scalar:1.1,
+            colors:['#ffb3c6','#ff8fab','#ffe5ec','#ff7096']
+        });
+        canvasConfetti({
+            particleCount:130,angle:130,spread:65,
+            origin:{x:1,y:.65},startVelocity:42,scalar:1.1,
+            colors:['#ffb3c6','#ff8fab','#ffe5ec','#ff7096']
+        });
+    }, 180);
+
+    // ---- 第3波：顶部洒落 ----
+    setTimeout(() => {
+        canvasConfetti({
+            particleCount:110,angle:90,spread:130,
+            origin:{x:.5,y:.25},startVelocity:28,scalar:1,
+            colors:['#ffd1dc','#ffe5ec','#fff0f5','#ffb3c6'],
+            shapes:['heart','circle']
+        });
+    }, 400);
+
+    // ---- 第4波：金星 ----
+    setTimeout(() => {
+        canvasConfetti({
+            particleCount:90,spread:360,startVelocity:22,
+            origin:{x:.5,y:.5},scalar:.9,
+            colors:['#ffd700','#ffb347','#ffe5b4','#fff8dc','#ffcc00'],
+            shapes:['star']
+        });
+    }, 650);
+
+    // ---- 第5波：持续飘洒 ----
+    setTimeout(() => {
+        canvasConfetti({
+            particleCount:60,spread:180,startVelocity:15,
+            origin:{x:.5,y:.4},scalar:.8,
+            colors:['#ffb3c6','#ffe5ec','#fff0f5','#ffd1dc'],
             shapes:['heart']
         });
+    }, 1000);
 
-        // 第二波：稍延迟，从侧面喷射
+    // ---- 场景背景切换 ----
+    setTimeout(() => {
+        // 生成星空
+        document.getElementById('stars1').style.boxShadow = generateStarShadows(70);
+        document.getElementById('stars2').style.boxShadow = generateStarShadows(50);
+
+        sceneBg.classList.add('active');
+        document.body.classList.add('scene-active');
+        // 停止背景漂浮爱心
+        floatingHearts.style.opacity = '0';
+        floatingHearts.style.transition = 'opacity 1.5s ease';
+    }, 350);
+
+    // ---- 卡牌内容切换 ----
+    setTimeout(() => {
+        mainCard.classList.add('fading');
+    }, 650);
+
+    setTimeout(() => {
+        mainCard.classList.remove('fading');
+        mainCard.classList.add('success');
+        // 启动花瓣 & 微光
+        startPetals();
+        startSparkles();
+    }, 1200);
+
+    // ---- NO 按钮消失 ----
+    noBtn.style.opacity = '0';
+    noBtn.style.pointerEvents = 'none';
+    yesBtn.style.opacity = '0';
+    yesBtn.style.pointerEvents = 'none';
+}
+
+yesBtn.addEventListener('click', showSuccess);
+yesBtn.addEventListener('touchstart', e => {
+    e.preventDefault();
+    showSuccess();
+}, {passive:false});
+
+/* =======================
+   珍藏此刻 → 最终彩蛋
+======================= */
+
+function finalCelebration(){
+    for(let i=0;i<3;i++){
         setTimeout(() => {
             canvasConfetti({
-                particleCount:120,
-                angle:50,
-                spread:60,
-                origin:{ x:0, y:.65 },
-                startVelocity:40,
-                scalar:1.1,
-                colors:['#ffb3c6','#ff8fab','#ffe5ec','#ff7096']
+                particleCount:150,spread:150,startVelocity:30,
+                origin:{x:.5,y:.45},scalar:1.1,
+                colors:['#ffd700','#ffb347','#ff4d88','#ff85a1','#fff0f5'],
+                shapes:['heart','star']
             });
-            canvasConfetti({
-                particleCount:120,
-                angle:130,
-                spread:60,
-                origin:{ x:1, y:.65 },
-                startVelocity:40,
-                scalar:1.1,
-                colors:['#ffb3c6','#ff8fab','#ffe5ec','#ff7096']
-            });
-        }, 200);
-
-        // 第三波：从上方洒落
-        setTimeout(() => {
-            canvasConfetti({
-                particleCount:100,
-                angle:90,
-                spread:120,
-                origin:{ x:.5, y:.3 },
-                startVelocity:25,
-                scalar:1,
-                colors:['#ffd1dc','#ffe5ec','#fff0f5','#ffb3c6'],
-                shapes:['heart','circle']
-            });
-        }, 450);
-
-        // 第四波：全屏金色闪闪
-        setTimeout(() => {
-            canvasConfetti({
-                particleCount:80,
-                spread:360,
-                startVelocity:20,
-                origin:{ x:.5, y:.5 },
-                scalar:.9,
-                colors:['#ffd700','#ffb347','#ffe5b4','#fff8dc'],
-                shapes:['star']
-            });
-        }, 700);
-
-        // 爱心雨 - 更密集
-        for(let i=0;i<80;i++){
-            setTimeout(() => {
-                const heart = document.createElement('div');
-                heart.innerHTML = ['💖','💕','💗','❤️','✨','💝'][Math.floor(Math.random()*6)];
-                heart.style.cssText = `
-                    position:fixed;
-                    left:${Math.random()*100}vw;
-                    top:-50px;
-                    font-size:${16 + Math.random()*26}px;
-                    opacity:1;
-                    pointer-events:none;
-                    z-index:10000;
-                `;
-                document.body.appendChild(heart);
-
-                const duration = 3 + Math.random()*3;
-                const tx = (Math.random()-0.5)*120;
-                const rot = (Math.random()-0.5)*360;
-
-                heart.animate([
-                    { transform:`translateY(0) translateX(0) rotate(0deg)`, opacity:1 },
-                    { transform:`translateY(${window.innerHeight+80}px) translateX(${tx}px) rotate(${rot}deg)`, opacity:0 }
-                ], {
-                    duration: duration*1000,
-                    easing:'cubic-bezier(.4,0,1,1)'
-                });
-
-                setTimeout(() => heart.remove(), duration*1000+200);
-            }, i*80);
-        }
+        }, i*250);
     }
 
-    /* =======================
-       成功弹窗
-    ======================= */
+    // 更多爱心爆炸
+    const cardRect = mainCard.getBoundingClientRect();
+    const ccx = cardRect.left + cardRect.width/2;
+    const ccy = cardRect.top + cardRect.height/2;
+    spawnHeartBurst(ccx, ccy, 50);
 
-    function showSuccess(){
-        if(confirmed) return;
-        confirmed = true;
+    // 更多花瓣
+    for(let i=0;i<20;i++) setTimeout(createPetal, i*80);
 
-        launchLoveEffects();
+    // 按钮文字变化
+    closeBtn.innerHTML = '❤️ 永远爱你 ❤️';
+    closeBtn.style.animation = 'heartbeat .8s ease 3';
+}
 
-        // 爆炸大爱心粒子
-        setTimeout(() => {
-            const cardRect = mainCard.getBoundingClientRect();
-            const cx = cardRect.left + cardRect.width/2;
-            const cy = cardRect.top + cardRect.height/2;
-            const heartEmojis = ['💖','💕','💗','❤️','💝','💘','💓'];
-            for(let i=0;i<30;i++){
-                const p = document.createElement('div');
-                p.className = 'final-heart-particle';
-                p.innerHTML = heartEmojis[Math.floor(Math.random()*heartEmojis.length)];
-                p.style.left = cx + 'px';
-                p.style.top = cy + 'px';
-                p.style.fontSize = (20 + Math.random()*30) + 'px';
-                const angle = Math.random()*Math.PI*2;
-                const dist = 100 + Math.random()*250;
-                p.style.setProperty('--tx', Math.cos(angle)*dist + 'px');
-                p.style.setProperty('--ty', Math.sin(angle)*dist - 80 + 'px');
-                p.style.setProperty('--tr', (Math.random()-0.5)*720 + 'deg');
-                p.style.animationDuration = (2 + Math.random()*2) + 's';
-                document.body.appendChild(p);
-                setTimeout(() => p.remove(), 4000);
-            }
-        }, 300);
-
-        // 延迟显示弹窗
-        setTimeout(() => {
-            const overlay = document.createElement('div');
-            overlay.className = 'success-overlay';
-
-            overlay.innerHTML = `
-                <div class="success-card">
-                    <div class="final-heart">💖</div>
-                    <h1>我们在一起啦</h1>
-                    <p>✨ 520 快乐 ✨</p>
-                    <p>
-                        从今天开始，<br>
-                        每一个日落与晚风，<br>
-                        我都想陪你一起看 ❤️
-                    </p>
-                    <button class="close-btn">💕 珍藏此刻 💕</button>
-                </div>
-            `;
-
-            document.body.appendChild(overlay);
-
-            overlay
-                .querySelector('.close-btn')
-                .addEventListener('click',() => {
-                    overlay.remove();
-                    yesBtn.disabled = true;
-                    noBtn.disabled = true;
-                    yesBtn.innerHTML = '❤️ 永远爱你 ❤️';
-                    noBtn.innerHTML = '💕 永远甜蜜 💕';
-
-                    // 如果还没 fixed，先初始化
-                    if(!noFixed) initNoPosition();
-
-                    noBtn.style.position = 'fixed';
-                    noBtn.style.left = '50%';
-                    noBtn.style.top = 'auto';
-                    noBtn.style.bottom = '60px';
-                    noBtn.style.transform = 'translateX(-50%)';
-                });
-        }, 500);
-    }
-
-    yesBtn.addEventListener('click', showSuccess);
-    yesBtn.addEventListener('touchstart', e => {
-        e.preventDefault();
-        showSuccess();
-    }, {passive:false});
+closeBtn.addEventListener('click', finalCelebration);
+closeBtn.addEventListener('touchstart', e => {
+    e.preventDefault();
+    finalCelebration();
+}, {passive:false});
 
 })();
 </script>
